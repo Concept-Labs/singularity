@@ -1,0 +1,36 @@
+{
+    "name": "concept-labs/singularity",
+    "description": "(C)oncept-Labs Singularity. Dependency Injection pack",
+    "keywords": ["php", "psr-11", "di", "container", "dependency injection", "singularity"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Viktor Halytskyi",
+            "email": "concept.galitsk@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "concept-labs/config": "^1",
+        "concept-labs/simple-cache": "^1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Concept\\Singularity\\": "src/"
+        }
+    },
+    "require-dev": {
+    },
+    "autoload-dev": {
+        "psr-4": {
+        }
+    },
+    "extra": {
+        "concept": {
+            "include": [
+                "concept.json"
+            ]
+        }
+    }
+
+}

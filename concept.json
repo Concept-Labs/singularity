@@ -1,0 +1,49 @@
+{
+    "singularity": {
+        "settings": {
+            "plugin-manager": {
+                "plugins": {
+                    "Concept\\Singularity\\Plugin\\ContractEnforce\\Common\\CommonTest": false,
+                    "Concept\\Singularity\\Plugin\\ContractEnforce\\Enforcement": {
+                        "priority": 200,
+                        "*": {
+                            "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": {}
+                        },
+                        "Concept\\Singularity\\Contract\\Factory\\LazyGhostInterface": {
+                            "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": true
+                        },
+                        "Concept\\Singularity\\Contract\\Initialization\\AutoConfigureInterface": {
+                            "Concept\\Singularity\\Plugin\\ContractEnforce\\Initialization\\AutoConfigure": true
+                        },
+                        "Concept\\Singularity\\Contract\\Lifecycle\\SharedInterface": {
+                            "Concept\\Singularity\\Plugin\\ContractEnforce\\Lifecycle\\Shared": {
+                                "shared": true,
+                                "weak": false
+                            }
+                        },
+                        "Concept\\Singularity\\Contract\\Lifecycle\\PrototypeInterface": {
+                            "Concept\\Singularity\\Plugin\\ContractEnforce\\Lifecycle\\Prototype": {
+                            }
+                        }
+
+                    }
+                }
+            }
+        },
+        "package": {
+            "concept-labs/service-manager": {
+                "preference": {
+                    "Concept\\Singularity\\SingularityInterface": {
+                        "class": "Concept\\Singularity\\Singularity"
+                    },
+                    "Psr\\Container\\ContainerInterface": {
+                        "class": "Concept\\Singularity\\Singularity"
+                    },
+                    "Concept\\Singularity\\Factory\\FactoryInterface": {
+                        "class": "Concept\\Singularity\\Factory\\Factory"
+                    }
+                }
+            }
+        }
+    }
+}
