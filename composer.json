@@ -12,6 +12,7 @@
     "require": {
         "php": ">=8.2",
         "psr/container": "^2",
+        "concept-labs/exception": "^1",
         "concept-labs/config": "^1",
         "concept-labs/simple-cache": "^1"
     },
