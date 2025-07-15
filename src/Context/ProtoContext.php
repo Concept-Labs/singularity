@@ -89,6 +89,29 @@ class ProtoContext implements ProtoContextInterface
     public function __construct(private readonly SingularityInterface $container)
     {}
 
+    public function __clone()
+    {
+        $this->reset();   
+    }
+
+    public function reset(): static
+    {
+        $this->metaData = [];
+        $this->pluginsCache = null;
+        $this->serviceFactory = null;
+        $this->serviceReflection = null;
+        $this->preferenceConfig = null;
+        $this->filteredReflectionMethod = [];
+        $this->reflectionMethod = [];
+        $this->attributesCache = [];
+        $this->isPluginPropagationStopped = [
+            PluginInterface::BEFORE => false,
+            PluginInterface::AFTER => false
+        ];
+
+        return $this;
+    }
+
     public function asConfig(): ConfigInterface
     {
         return Config::fromArray($this->getMetaData());
@@ -203,6 +226,31 @@ class ProtoContext implements ProtoContextInterface
     /**
      * @inheritDoc
      */
+    public function getPreferenceArguments(): array
+    {
+        return $this->getPreferenceConfig()
+            ->get(ConfigNodeInterface::NODE_ARGUMENTS) ?? [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function hasPreferenceArgument(string $name): bool
+    {
+        return isset($this->getPreferenceArguments()[$name]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPreferenceArgument(string $name, mixed $default = null): mixed
+    {
+        return $this->getPreferenceArguments()[$name] ?? $default;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function hasPlugins(): bool
     {
         return !empty($this->getPlugins());
@@ -220,6 +268,11 @@ class ProtoContext implements ProtoContextInterface
          return $this->pluginsCache;
     }
 
+    /**
+     * Aggregate plugins
+     * 
+     * @return array<string, mixed>
+     */
     protected function aggregatePlugins(): array
     {
         $configPlugins = $this->getPreferenceConfig()
@@ -230,7 +283,12 @@ class ProtoContext implements ProtoContextInterface
         return array_merge($configPlugins ?? [], $attributePlgins);
     }
 
-    protected function getAttibutablePlugins(ProtoContextInterface $context): array
+    /**
+     * Get attributable plugins
+     * 
+     * @return array<string, mixed>
+     */
+    protected function getAttibutablePlugins(): array
     {
         $plugins = [];
 
@@ -262,8 +320,6 @@ class ProtoContext implements ProtoContextInterface
         return false === ($this->pluginsCache[$plugin] ?? true);
     }
 
-    
-
     /**
      * @inheritDoc
      */
@@ -274,6 +330,9 @@ class ProtoContext implements ProtoContextInterface
         return $this;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isPluginPropagationStopped(string $type): bool
     {
         if (!isset($this->isPluginPropagationStopped[$type])) {

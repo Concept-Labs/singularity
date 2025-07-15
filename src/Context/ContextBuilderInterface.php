@@ -3,7 +3,7 @@ namespace Concept\Singularity\Context;
 
 use Concept\Config\ConfigurableInterface;
 
-interface ContextBuilderInterface extends ConfigurableInterface
+interface ContextBuilderInterface
 {
     /**
      * Build a context

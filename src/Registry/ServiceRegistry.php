@@ -1,6 +1,7 @@
 <?php
 namespace Concept\Singularity\Registry;
 
+use Concept\Singularity\Contract\Lifecycle\PrototypeInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use WeakReference;
 
@@ -26,9 +27,9 @@ class ServiceRegistry implements ServiceRegistryInterface
             }
         }
 
-        // if ($service instanceof PrototypableInterface) {
-        //     $service = $service->prototype();
-        // }
+        if ($service instanceof PrototypeInterface) {
+            $service = $service->prototype();
+        }
 
         return $service ?? throw new NotFoundExceptionInterface(
             sprintf(

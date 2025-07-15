@@ -1,6 +1,19 @@
 {
+
     "singularity": {
+        "some-node": {
+	        "include-here" : "@include(etc/include.json)"
+        },
+
         "settings": {
+            "cache": {
+                "enabled": true,
+                "class": "Concept\\SimpleCache\\FS\\JsonCache",
+                "args": {
+                    "path": "${BASE}/var/.app/${APPID}/cache/preference.context.json"
+                }
+            },
+            
             "plugin-manager": {
                 "plugins": {
                     "Concept\\Singularity\\Plugin\\ContractEnforce\\Common\\CommonTest": false,
@@ -31,7 +44,7 @@
             }
         },
         "package": {
-            "concept-labs/service-manager": {
+            "concept-labs/singularity": {
                 "preference": {
                     "Concept\\Singularity\\SingularityInterface": {
                         "class": "Concept\\Singularity\\Singularity"

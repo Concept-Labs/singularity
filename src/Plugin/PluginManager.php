@@ -33,10 +33,10 @@ class PluginManager implements PluginManagerInterface
     /**
      * {@inheritDoc}
      */
-    // public function getPlugins(): array
-    // {
-    //     return $this->plugins;
-    // }
+    public function getPlugins(): array
+    {
+        return $this->plugins;
+    }
 
     /**
      * {@inheritDoc}
@@ -57,10 +57,26 @@ class PluginManager implements PluginManagerInterface
     protected function configurePlugins(): static
     {
         $this->plugins = $this->getConfig()
-            ->get(ConfigNodeInterface::NODE_PLUGIN_MANAGER_PLUGINS) ?? [];
+            ->get($this->getPluginsNode()) ?? [];
 
        
         return $this;
+    }
+
+    /**
+     * Get the plugins node
+     * 
+     * @return string
+     */
+    protected function getPluginsNode(): string
+    {
+        return sprintf(
+            '%s.%s.%s.%s',
+            ConfigNodeInterface::NODE_SINGULARITY,
+            ConfigNodeInterface::NODE_SETTINGS,
+            ConfigNodeInterface::NODE_PLUGIN_MANAGER,
+            ConfigNodeInterface::NODE_PLUGINS
+        );
     }
 
     
@@ -70,11 +86,7 @@ class PluginManager implements PluginManagerInterface
      */
     public function register(string|callable $plugin, mixed $args = null, ?int $priority = null): static
     {
-        //$this->assertPlugin($plugin);
-        // $priority ??= $args[ConfigNodeInterface::NODE_PRIORITY] ?? 0;
-        // unset($args[ConfigNodeInterface::NODE_PRIORITY]);
-        // $this->plugins[$priority][$plugin] = $args;
-
+        
         $args[ConfigNodeInterface::NODE_PRIORITY] = $priority ?? $args[ConfigNodeInterface::NODE_PRIORITY] ?? 0;
         $this->plugins[$plugin] = $args;
         
@@ -188,16 +200,18 @@ class PluginManager implements PluginManagerInterface
          * 
          */
         $queue = array_replace(
-            $this->plugins,
+            $this->getPlugins(),
             $context->getPlugins()
             );
 
         uasort(
             $queue, 
-            fn($a, $b) => 
-                (isset($b[ConfigNodeInterface::NODE_PRIORITY]) ? $b[ConfigNodeInterface::NODE_PRIORITY] : 0)
-                <=> 
-                (isset($a[ConfigNodeInterface::NODE_PRIORITY]) ? $a[ConfigNodeInterface::NODE_PRIORITY] : 0)
+            function($a, $b) { 
+                $node = ConfigNodeInterface::NODE_PRIORITY;
+                $pA = $a[$node] ?? 0;
+                $pB = $b[$node] ?? 0;
+                return $pA <=> $pB;
+            }
         );
 
         return $queue;

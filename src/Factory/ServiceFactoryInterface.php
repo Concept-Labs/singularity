@@ -10,5 +10,5 @@ interface ServiceFactoryInterface
      * 
      * @return object
      */
-    public function create(array $args = []);
+    public function create(array $args = []): mixed;
 }

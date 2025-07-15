@@ -1,15 +1,11 @@
 <?php
 namespace Concept\Singularity;
 
-use Concept\Config\ConfigInterface;
-use Concept\Singularity\Config\ConfigManagerInterface;
 use Psr\Container\ContainerInterface;
+use Concept\Config\ConfigInterface;
 
 interface SingularityInterface extends ContainerInterface
-{    
-
-    public function configure(string|array|ConfigInterface ...$config): static;
-
+{
     /**
      * {@inheritDoc}
      * 
@@ -76,11 +72,12 @@ interface SingularityInterface extends ContainerInterface
      */
     //public function getContainer(): ContainerInterface;
 
+
     /**
-     * Get the config manager.
+     * Get the config.
      *
-     * @return ConfigManagerInterface
+     * @return ConfigInterface
      */
-    public function getConfigManager(): ConfigManagerInterface;
+    public function getConfig(): ConfigInterface;
 
 }

@@ -1,13 +1,10 @@
 <?php
 namespace Concept\Singularity;
 
+use Psr\SimpleCache\CacheInterface;
 use Psr\Container\ContainerInterface;
 use Concept\Config\ConfigInterface;
-use Concept\SimpleCache\SimpleCache;
-use Concept\Singularity\Config\ConfigManager;
-use Concept\Singularity\Config\ConfigManagerInterface;
 use Concept\Singularity\Config\ConfigNodeInterface;
-
 use Concept\Singularity\Context\ContextBuilder;
 use Concept\Singularity\Context\ContextBuilderInterface;
 use Concept\Singularity\Context\ProtoContextInterface;
@@ -21,16 +18,18 @@ use Concept\Singularity\Exception\ServiceNotFoundException;
 use Concept\Singularity\Plugin\PluginInterface;
 use Concept\Singularity\Plugin\PluginManager;
 use Concept\Singularity\Plugin\PluginManagerInterface;
-use Psr\SimpleCache\CacheInterface;
+use Concept\Singularity\Traits\CacheTrait;
+use Concept\Singularity\Traits\ConfigTrait;
+use Concept\Singularity\Traits\SettingsTrait;
 
 class Singularity implements SingularityInterface
 {
 
-    /**
-     * @var ConfigManagerInterface|null
-     * Manager for configuration
-     */
-    private ?ConfigManagerInterface $configManager = null;
+    use ConfigTrait;
+    use SettingsTrait;
+    use CacheTrait;
+
+    //private ?ConfigInterface $config = null;
 
     /**
      * @var ServiceRegistryInterface|null
@@ -39,6 +38,7 @@ class Singularity implements SingularityInterface
     private ?ContextBuilderInterface $contextBuilder = null;
     private ?PluginManagerInterface $pluginManager = null;
     private ?CacheInterface $cache = null;
+    private array $serviceProfivders = [];
     
     /**
      * @var array<string>
@@ -49,91 +49,15 @@ class Singularity implements SingularityInterface
 
     static array $tc = [];
 
-    public function __construct()
+    public function __construct(private ConfigInterface $config)
     {
-        
-    }
-
-    protected function getCache(): CacheInterface
-    {
-        return $this->cache ??= new SimpleCache();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function configure(string|array|ConfigInterface ...$configs): static
-    {
-        $this->configManager = new ConfigManager();
-        $this->serviceRegistry = new ServiceRegistry();
-        //$this->contextBuilder = new ContextBuilder($this, new MemCachedCache());
-        $this->contextBuilder = (new ContextBuilder($this))->setCache($this->getCache());
-        $this->pluginManager = new PluginManager();
-        
-        $this->getConfigManager()->addConfig(
-            ...$configs
-            //'var/config.c.json'
-        );
-//@todo: pass config manager to context builder
-        $this->contextBuilder->setConfig(
-                $this->getConfig()->from(ConfigNodeInterface::NODE_SINGULARITY)
+        $this->getPluginManager()
+            ->configure(
+                $this->getConfig()
             );
-        
-        
-        $pluginManagerConfigNode = sprintf(
-            '%s.%s.%s',
-            ConfigNodeInterface::NODE_SINGULARITY,
-            ConfigNodeInterface::NODE_SETTINGS,
-            ConfigNodeInterface::NODE_PLUGIN_MANAGER
-        );
-        $this->getPluginManager()->configure(
-            $this->getConfig()
-                ->from($pluginManagerConfigNode) 
-                    ?? throw new NoConfigurationLoadedException(
-                        sprintf(
-                            'Plugin manager configuration not found (Node: "%s")',
-                            $pluginManagerConfigNode
-                        )
-                    )
-        );
-
-        //echo "<pre>";
-        //print_r($this->getConfig()->asArray());
-        //file_put_contents('var/config.c.json', json_encode($this->getConfig()->asArray(), JSON_PRETTY_PRINT));
-        //die();
 
         return $this;
-    }
-
-    protected function getConfig(): ConfigInterface
-    {
-        return $this->getConfigManager()->getConfig();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function getServiceRegistry(): ServiceRegistryInterface
-    {
-        return $this->serviceRegistry;
-    }
-    
-    /**
-     * @inheritDoc
-     */
-    public function getConfigManager(): ConfigManagerInterface
-    {
-        return $this->configManager;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function register(string $serviceId, object $service, bool $weak = false): static
-    {
-        $this->getServiceRegistry()->register($serviceId, $service, $weak);
-
-        return $this;
+        //$this->setCache($cache);
     }
 
     /**
@@ -149,9 +73,17 @@ class Singularity implements SingularityInterface
      */
     public function get(string $serviceId, array $args = [], ?array $dependencyStack = null): object
     {
-        
-
         return $this->require($serviceId, $args, $dependencyStack, false);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function register(string $serviceId, object $service, bool $weak = false): static
+    {
+        $this->getServiceRegistry()->register($serviceId, $service, $weak);
+
+        return $this;
     }
 
     /**
@@ -310,14 +242,23 @@ class Singularity implements SingularityInterface
     protected function resolveDependency(\ReflectionParameter $param, ProtoContextInterface $context, array $args = []): mixed
     {
         if (isset($args[$param->getName()])) {
+            /**
+             * Parameter is provided (f.e. from factory)
+             */
             return $args[$param->getName()];
         }
 
-        if ($param->isDefaultValueAvailable()) {
+        if ($param->isDefaultValueAvailable() && !$context->hasPreferenceArgument($param->getName())) {
+            /**
+             * Parameter has default value and is not provided in preferences config
+             */
             return $param->getDefaultValue();
         }
 
-        if ($param->isOptional()) {
+        if ($param->isOptional() && !$context->hasPreferenceArgument($param->getName())) {
+            /**
+             * Parameter is optional and is not provided in preferences config
+             */
             return null;
         }
 
@@ -326,22 +267,45 @@ class Singularity implements SingularityInterface
         if ($type === null) {
             throw new RuntimeException(
                 sprintf(
-                    'Unable to resolve dependency for parameter "%s"',
-                    $param->getName()
+                    'Unable to resolve dependency for parameter "%s". Service "%s"("%s") has no type hint',
+                    $param->getName(),
+                    $context->getServiceId(),
+                    $context->getServiceClass()
                 )
             );
         }
 
-        $type = $type->getName();
-
-        if ($type == ProtoContextInterface::class) {
+        if ($type->isBuiltin()) {
             /**
-             * @todo: ???
+             * When service requests scalar type dependency 
+             * the preference argument is returned if it is provided
+             */
+            if ($context->hasPreferenceArgument($param->getName())) {
+                return $context->getPreferenceArgument($param->getName());
+            }
+
+            throw new RuntimeException(
+                sprintf(
+                    'Unable to resolve dependency for parameter "%s" for service "%s" ("%s").',
+                    $param->getName(),
+                    $context->getServiceId(),
+                    $context->getServiceClass()
+                )
+            );
+        }
+
+
+        if ($type->getName() == ProtoContextInterface::class) {
+            /**
+             * NOTE: When service requests context as dependency the current context is returned
              */
             return $context;
         }
 
-        return $this->get($type);
+        /**
+         * Request dependency from container
+         */
+        return $this->get($type->getName());
     }
 
     /**
@@ -351,7 +315,15 @@ class Singularity implements SingularityInterface
      */
     protected function getContextBuilder(): ContextBuilderInterface
     {
-        return $this->contextBuilder;
+        return $this->contextBuilder ??= 
+            new ContextBuilder(
+                $this,
+                /**
+                 * @todo: pass data reference to do not do config duplicates
+                 */
+                $this->getConfig(),
+                $this->getCache()
+            );
     }
 
     /**
@@ -361,7 +333,7 @@ class Singularity implements SingularityInterface
      */
     protected function getPluginManager(): PluginManagerInterface
     {
-        return $this->pluginManager;
+        return $this->pluginManager ??= new PluginManager();
     }
 
     /**
@@ -397,6 +369,14 @@ class Singularity implements SingularityInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    protected function getServiceRegistry(): ServiceRegistryInterface
+    {
+        return $this->serviceRegistry ??= new ServiceRegistry();
+    }
+
+    /**
      * Assert state
      * 
      * @param string $serviceId
@@ -406,7 +386,7 @@ class Singularity implements SingularityInterface
      */
     protected function assertState(string $serviceId, array $dependencyStack): static
     {
-        if ($this->getConfigManager()->getConfig() === null || !$this->getConfigManager()->getConfig()->has("singularity")) {
+        if ($this->getConfig() === null || !$this->getConfig()->has(ConfigNodeInterface::NODE_SINGULARITY)) {
             throw new NoConfigurationLoadedException();
         }
 
