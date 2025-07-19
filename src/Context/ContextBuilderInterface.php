@@ -1,7 +1,7 @@
 <?php
 namespace Concept\Singularity\Context;
 
-use Concept\Config\ConfigurableInterface;
+use Concept\Config\Contract\ConfigurableInterface;
 
 interface ContextBuilderInterface
 {

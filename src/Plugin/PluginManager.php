@@ -2,14 +2,14 @@
 namespace Concept\Singularity\Plugin;
 
 use Concept\Config\ConfigInterface;
-use Concept\Config\Traits\ConfigurableTrait;
+use Concept\Config\Contract\ConfigurableTrait;
 use Concept\Singularity\Config\ConfigNodeInterface;
 use Concept\Singularity\Context\ProtoContextInterface;
 use Concept\Singularity\Exception\RuntimeException;
-use Concept\Singularity\Plugin\Attribute\AttributePluginInterface;
 use Concept\Singularity\Plugin\Exception\InvalidPluginClassException;
 use Concept\Singularity\Plugin\Exception\InvalidPluginMethodException;
 use Concept\Singularity\Plugin\Exception\PluginNotFoundException;
+//use Concept\Singularity\Plugin\Attribute\AttributePluginInterface;
 
 /**
  * Plugin manager

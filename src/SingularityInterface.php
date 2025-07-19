@@ -65,19 +65,4 @@ interface SingularityInterface extends ContainerInterface
      */
     public function has(string $serviceId): bool;
 
-    /**
-     * Get the container.
-     *
-     * @return ContainerInterface
-     */
-    //public function getContainer(): ContainerInterface;
-
-
-    /**
-     * Get the config.
-     *
-     * @return ConfigInterface
-     */
-    public function getConfig(): ConfigInterface;
-
 }

@@ -4,6 +4,8 @@ namespace Concept\Singularity;
 use Psr\SimpleCache\CacheInterface;
 use Psr\Container\ContainerInterface;
 use Concept\Config\ConfigInterface;
+use Concept\Config\Contract\ConfigurableInterface;
+use Concept\Config\Contract\ConfigurableTrait;
 use Concept\Singularity\Config\ConfigNodeInterface;
 use Concept\Singularity\Context\ContextBuilder;
 use Concept\Singularity\Context\ContextBuilderInterface;
@@ -22,10 +24,10 @@ use Concept\Singularity\Traits\CacheTrait;
 use Concept\Singularity\Traits\ConfigTrait;
 use Concept\Singularity\Traits\SettingsTrait;
 
-class Singularity implements SingularityInterface
+class Singularity implements SingularityInterface, ConfigurableInterface
 {
 
-    use ConfigTrait;
+    use ConfigurableTrait;
     use SettingsTrait;
     use CacheTrait;
 

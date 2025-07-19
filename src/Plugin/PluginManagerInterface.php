@@ -3,7 +3,7 @@
 namespace Concept\Singularity\Plugin;
 
 use Concept\Config\ConfigInterface;
-use Concept\Config\ConfigurableInterface;
+use Concept\Config\Contract\ConfigurableInterface;
 use Concept\Singularity\Context\ProtoContextInterface;
 
 interface PluginManagerInterface extends ConfigurableInterface
