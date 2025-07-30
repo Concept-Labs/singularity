@@ -20,11 +20,7 @@ class AggregatePlugin extends AbstractPlugin
             if ($context->isPluginPropagationStopped($method)) {
                 break;
             }
-            echo sprintf(
-                "<br>Aggregator <b>%s</b>::before() for <b>%s</b>",
-                $plugin,
-                $context->getReflection()->getName()
-            );
+
             if (method_exists($plugin, $method)) {
                 $plugin::$method($context, $pluginArgs);
             }
@@ -42,11 +38,6 @@ class AggregatePlugin extends AbstractPlugin
             if ($context->isPluginPropagationStopped($method)) {
                 break;
             }
-            echo sprintf(
-                "<br>Aggregator: <b>%s</b>::after() for <b>%s</b>",
-                $plugin,
-                $context->getReflection()->getName()
-            );
             if (method_exists($plugin, $method)) {
                 $plugin::$method($service, $context, $pluginArgs);
             }
@@ -68,6 +59,9 @@ class AggregatePlugin extends AbstractPlugin
         return $pluginsData ?? [];
     }
 
+    /**
+     * 
+     */
     protected static function assertPlugin(string|callable $plugin): void
     {
         if (!is_string($plugin) && !is_callable($plugin)) {

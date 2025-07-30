@@ -1,48 +1,8 @@
 {
-
     "singularity": {
-        "some-node": {
-	        "include-here" : "@include(etc/include.json)"
-        },
+        
+        "settings": "@include(etc/settings.json)",
 
-        "settings": {
-            "cache": {
-                "enabled": true,
-                "class": "Concept\\SimpleCache\\FS\\JsonCache",
-                "args": {
-                    "path": "${BASE}/var/.app/${APPID}/cache/preference.context.json"
-                }
-            },
-            
-            "plugin-manager": {
-                "plugins": {
-                    "Concept\\Singularity\\Plugin\\ContractEnforce\\Common\\CommonTest": false,
-                    "Concept\\Singularity\\Plugin\\ContractEnforce\\Enforcement": {
-                        "priority": 200,
-                        "*": {
-                            "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": {}
-                        },
-                        "Concept\\Singularity\\Contract\\Factory\\LazyGhostInterface": {
-                            "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": true
-                        },
-                        "Concept\\Singularity\\Contract\\Initialization\\AutoConfigureInterface": {
-                            "Concept\\Singularity\\Plugin\\ContractEnforce\\Initialization\\AutoConfigure": true
-                        },
-                        "Concept\\Singularity\\Contract\\Lifecycle\\SharedInterface": {
-                            "Concept\\Singularity\\Plugin\\ContractEnforce\\Lifecycle\\Shared": {
-                                "shared": true,
-                                "weak": false
-                            }
-                        },
-                        "Concept\\Singularity\\Contract\\Lifecycle\\PrototypeInterface": {
-                            "Concept\\Singularity\\Plugin\\ContractEnforce\\Lifecycle\\Prototype": {
-                            }
-                        }
-
-                    }
-                }
-            }
-        },
         "package": {
             "concept-labs/singularity": {
                 "preference": {

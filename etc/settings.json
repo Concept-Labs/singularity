@@ -1,0 +1,10 @@
+{
+    "plugin-manager": "@include(plugin-manager.json)",
+    "cache": {
+        "enabled": false,
+        "class": "Concept\\SimpleCache\\FS\\JsonCache",
+        "args": {
+            "path": "${BASE}/var/.sdi/cache/sdi.context.json"
+        }
+    }
+}

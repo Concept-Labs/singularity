@@ -133,8 +133,6 @@ class PluginManager implements PluginManagerInterface
      */
     protected function invokePlugins(string $method, ProtoContextInterface $context, ?object $object = null): void
     {
-        echo "<hr>".strtoupper($method)."() PLUGINS FOR " . $context->getServiceId() ;
-
         // foreach ($this->queue as $item) {
         //     [$plugin, $args] = [key($item), current($item)];
         // }
@@ -178,11 +176,11 @@ class PluginManager implements PluginManagerInterface
                 if (!is_a($plugin, PluginInterface::class, true)) {
                     throw new InvalidPluginClassException($plugin);
                 }
-                echo "<br>Plugin <b>$plugin</b>::$method()";
+//                echo "<br>Plugin <b>$plugin</b>::$method()";
                 match ($method) {
                     PluginInterface::BEFORE => $plugin::$method($context, $args),
                     PluginInterface::AFTER => $plugin::$method($object, $context, $args),
-                    default => throw new InvalidPluginMethodException($plugin, $method)
+                    default => throw new InvalidPluginMethodException($plugin::class, $method)
                 };
             //}
         }

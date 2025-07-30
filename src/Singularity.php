@@ -51,12 +51,12 @@ class Singularity implements SingularityInterface, ConfigurableInterface
 
     static array $tc = [];
 
-    public function __construct(private ConfigInterface $config)
+    public function __construct(ConfigInterface $config)
     {
+        $this->setConfig($config);
+
         $this->getPluginManager()
-            ->configure(
-                $this->getConfig()
-            );
+            ->configure($this->getConfig());
 
         return $this;
         //$this->setCache($cache);

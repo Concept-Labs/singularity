@@ -21,11 +21,7 @@ class Shared extends AbstractPlugin
         $shared = $args['shared'] ?? true;
         $weak = $args['weak'] ?? false;
 
-        echo sprintf(
-            "<br>Sharing... shared: %s; weak: %s",
-            $shared ? 'true' : 'false',
-            $weak ? 'true' : 'false'
-        );
+        
 
         if ($shared && !$context->getContainer()->has($context->getSharedId())) {
             $context->getContainer()->register($context->getSharedId(), $service, $weak);

@@ -43,9 +43,9 @@ class ContextBuilder implements ContextBuilderInterface
      * 
      * @return array
      */
-    protected function &getDataRef(): array
+    protected function &getDataReference(): array
     {
-        $data = $this->getConfig()->asArrayRef()[ConfigNodeInterface::NODE_SINGULARITY];
+        $data = $this->getConfig()->dataReference()[ConfigNodeInterface::NODE_SINGULARITY];
         if (!is_array($data)) {
             throw new RuntimeException('Invalid configuration data');
         }
@@ -108,14 +108,14 @@ class ContextBuilder implements ContextBuilderInterface
     /**
         @todo: test cerefully
     */
-        $this->configData ??= $this->getDataRef();
+        $this->configData ??= $this->getDataReference();
 
         $cacheKey = $this->generateCacheKey($serviceId, $dependencyStack);
         /**
          * Add the current service to the dependency stack
          */
         
-        if ($this->getCache()->has($cacheKey) && empty($overrides)) {
+        if ($this->getCache()?->has($cacheKey) && empty($overrides)) {
             return 
                 $this->inflateContext(
                     $serviceId,
@@ -132,7 +132,7 @@ class ContextBuilder implements ContextBuilderInterface
         }
         
         $servicePreference = $preferences[$serviceId] ?? ['unresolved' => true];
-        $this->getCache()->set($cacheKey, $servicePreference);
+        $this->getCache()?->set($cacheKey, $servicePreference);
 
         return $this->inflateContext($serviceId, $servicePreference, $dependencyStack);
     }
