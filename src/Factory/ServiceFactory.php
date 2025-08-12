@@ -50,11 +50,14 @@ abstract class ServiceFactory implements ServiceFactoryInterface, SharedInterfac
      */
     protected function createService(string $serviceId, array $args = []): object
     {
+        $depStack = $this->getContext()->getDependencyStack();
+        array_unshift($depStack, static::class);
+        
         return $this->getContainer()
             ->create(
                 $serviceId,
                 $args,
-                $this->getContext()->getDependencyStack()
+                $depStack
             );
     }
 

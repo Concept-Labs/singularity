@@ -105,16 +105,17 @@ class ContextBuilder implements ContextBuilderInterface
      */
     public function build(string $serviceId, array $dependencyStack = [], array $overrides = []): ProtoContextInterface
     {
-    /**
-        @todo: test cerefully
-    */
+        /**
+           @todo: test cerefully
+         */
         $this->configData ??= $this->getDataReference();
 
-        $cacheKey = $this->generateCacheKey($serviceId, $dependencyStack);
         /**
-         * Add the current service to the dependency stack
+         * Generate a cache key for the current context
+         * if cache is enabled
          */
-        
+        $cacheKey = $this->getCache() ? $this->generateCacheKey($serviceId, $dependencyStack) : null;
+
         if ($this->getCache()?->has($cacheKey) && empty($overrides)) {
             return 
                 $this->inflateContext(
@@ -124,14 +125,48 @@ class ContextBuilder implements ContextBuilderInterface
                 );
         } 
         
+        /**
+         * Add the current service to the dependency stack
+         */
         $dependencyStack[] = $serviceId;
+
+        /**
+         * Build the preferences based on the dependency stack
+         * and the configuration data
+         */
         $preferences = $this->buildPreferences($dependencyStack);
         
+        /**
+         * If there are overrides, we will merge them with the preferences
+         * to ensure that the context is built with the correct data.
+         */
         if (!empty($overrides)) {
             $this->mergePreferences($preferences, $overrides);
         }
         
+        /**
+         * If the service is not resolved, we will use the default preference
+         * which is 'unresolved' and will be used to create the service later.
+         */
         $servicePreference = $preferences[$serviceId] ?? ['unresolved' => true];
+
+        /**
+            @todo: is it correct or keep the service ID? 
+            We are adding the resolved class to the dependency stack instead of the service ID.
+            This is to ensure that the context can resolve the next service correctly.
+            If the service class is not resolved, dependency stack will not be changed. 
+         */
+        if (isset($servicePreference[ConfigNodeInterface::NODE_CLASS])) {
+            // Add the resolved class to the dependency stack
+            if (!in_array($servicePreference[ConfigNodeInterface::NODE_CLASS], $dependencyStack)) {
+                array_pop($dependencyStack);
+                $dependencyStack[] = $servicePreference[ConfigNodeInterface::NODE_CLASS];
+            }
+        }
+
+        /**
+         * Cache the service preference if cache is enabled
+         */
         $this->getCache()?->set($cacheKey, $servicePreference);
 
         return $this->inflateContext($serviceId, $servicePreference, $dependencyStack);
@@ -150,27 +185,44 @@ class ContextBuilder implements ContextBuilderInterface
         $processedPackages = [];
 
         foreach ($dependencyStack as $id) {
+            /**
+             * Retrieve namespaces for the service ID and process their configurations
+             */
             $namespaces = $this->getNamespacesForId($id);
             foreach ($namespaces as $namespace) {
-                if (!isset($this->configData['namespace'][$namespace])) {
+                if (!isset($this->configData[ConfigNodeInterface::NODE_NAMESPACE][$namespace])) {
                     continue;
                 }
 
-                if (isset($this->configData['namespace'][$namespace][ConfigNodeInterface::NODE_REQUIRE])) {
-                    foreach ($this->configData['namespace'][$namespace][ConfigNodeInterface::NODE_REQUIRE] as $pack => $packData) {
-                        if (!isset($processedPackages[$pack])) {
-                            $this->processPackage($pack, $preferences, $processedPackages);
-                        }
+                /**
+                 * Get the dependencies (required packages) for the namespace and process them
+                 */
+                $requires = &$this->configData[ConfigNodeInterface::NODE_NAMESPACE][$namespace][ConfigNodeInterface::NODE_REQUIRE] ?? [];
+                foreach ($requires as $pack => $packData) {
+                    if (!isset($processedPackages[$pack])) {
+                        $this->processPackage($pack, $preferences, $processedPackages);
                     }
                 }
 
-                if (isset($this->configData['namespace'][$namespace]['preference'])) {
-                    $this->mergePreferences($preferences, $this->configData['namespace'][$namespace]['preference']);
+                /**
+                 * if namespace has preferences, merge them into the top level preferences
+                 */
+                if (isset($this->configData[ConfigNodeInterface::NODE_NAMESPACE][$namespace][ConfigNodeInterface::NODE_PREFERENCE])) {
+                    $this->mergePreferences(
+                        $preferences, 
+                        $this->configData
+                            [ConfigNodeInterface::NODE_NAMESPACE]
+                                [$namespace]
+                                    [ConfigNodeInterface::NODE_PREFERENCE]
+                    );
                 }
             }
 
-            if (isset($this->configData['preference'][$id])) {
-                $this->mergePreferences($preferences, [$id => $this->configData['preference'][$id]]);
+            /**
+             * If the service ID has preferences, merge them into the top level preferences
+             */
+            if (isset($this->configData[ConfigNodeInterface::NODE_PREFERENCE][$id])) {
+                $this->mergePreferences($preferences, [$id => $this->configData[ConfigNodeInterface::NODE_PREFERENCE][$id]]);
             }
         }
 
@@ -190,24 +242,33 @@ class ContextBuilder implements ContextBuilderInterface
             return;
         }
 
-        $packData = $this->configData['package'][$pack];
+        $packData = $this->configData[ConfigNodeInterface::NODE_PACKAGE][$pack];
+        /**
+         * Remember that we have processed this package
+         */
         $processedPackages[$pack] = true;
-
+        /**
+         * Resolve the package dependencies (required packages) recursively
+         *  
+         */
         if (isset($packData[ConfigNodeInterface::NODE_REQUIRE])) {
             foreach ($packData[ConfigNodeInterface::NODE_REQUIRE] as $depPack => $depData) {
-                if (!isset($processedPackages[$depPack])) {
+                if (!isset($processedPackages[$depPack])) { // Check if the package is already processed
                     $this->processPackage($depPack, $preferences, $processedPackages);
                 }
             }
         }
 
-        if (isset($packData['preference'])) {
-            $this->mergePreferences($preferences, $packData['preference']);
+        /**
+         * If the package has preferences, merge them into the top level preferences
+         */
+        if (isset($packData[ConfigNodeInterface::NODE_PREFERENCE])) {
+            $this->mergePreferences($preferences, $packData[ConfigNodeInterface::NODE_PREFERENCE]);
         }
     }
 
     /**
-     * Merge the preferences
+     * Merge the preferences recursively
      * 
      * @param array $target
      * @param array $source
@@ -232,13 +293,12 @@ class ContextBuilder implements ContextBuilderInterface
      */
     private function getNamespacesForId(string $serviceId): array
     {
-        // Обчислюємо локально без кешу Memcached
         $parts = explode('\\', $serviceId);
         $namespace = '';
         $namespaces = [];
         foreach ($parts as $part) {
             $namespace .= $part . '\\';
-            if (isset($this->configData['namespace'][$namespace])) {
+            if (isset($this->configData[ConfigNodeInterface::NODE_NAMESPACE][$namespace])) {
                 $namespaces[] = $namespace;
             }
         }

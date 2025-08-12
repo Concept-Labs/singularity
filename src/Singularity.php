@@ -21,7 +21,6 @@ use Concept\Singularity\Plugin\PluginInterface;
 use Concept\Singularity\Plugin\PluginManager;
 use Concept\Singularity\Plugin\PluginManagerInterface;
 use Concept\Singularity\Traits\CacheTrait;
-use Concept\Singularity\Traits\ConfigTrait;
 use Concept\Singularity\Traits\SettingsTrait;
 
 class Singularity implements SingularityInterface, ConfigurableInterface
