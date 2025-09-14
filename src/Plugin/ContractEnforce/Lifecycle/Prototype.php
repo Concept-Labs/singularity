@@ -23,7 +23,8 @@ class Prototype extends AbstractPlugin
         if (!$service instanceof PrototypeInterface) {
             throw new RuntimeException(
                 sprintf(
-                    'The service %s must implement %s',
+                    'Cannot apply plugin (%s): the service %s must implement %s',
+                    static::class,
                     $context->getServiceClass(),
                     PrototypeInterface::class
                 )

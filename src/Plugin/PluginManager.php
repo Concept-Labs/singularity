@@ -243,19 +243,19 @@ class PluginManager implements PluginManagerInterface
     }
 
 
-    // protected function getAttributePlugins(ProtoContextInterface $context): array
-    // {
-    //     $plugins = [];
-    //     $reflection = $context->getReflection();
-    //     $attributes = $reflection->getAttributes(AttributePluginInterface::class);
+    protected function getAttributePlugins(ProtoContextInterface $context): array
+    {
+        $plugins = [];
+        $reflection = $context->getReflection();
+        $attributes = $reflection->getAttributes(AttributePluginInterface::class);
 
-    //     foreach ($attributes as $attribute) {
-    //         $plugin = $attribute->newInstance();
-    //         $plugin = 
-    //             array_replace($plugins, $plugin->getPluginMeta());
-    //     }
+        foreach ($attributes as $attribute) {
+            $plugin = $attribute->newInstance();
+            $plugin = 
+                array_replace($plugins, $plugin->getPluginMeta());
+        }
 
-    //     return $plugins;
-    // }
+        return $plugins;
+    }
 
 }

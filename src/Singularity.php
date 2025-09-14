@@ -1,8 +1,8 @@
 <?php
 namespace Concept\Singularity;
 
-use Psr\SimpleCache\CacheInterface;
 use Psr\Container\ContainerInterface;
+use Psr\SimpleCache\CacheInterface;
 use Concept\Config\ConfigInterface;
 use Concept\Config\Contract\ConfigurableInterface;
 use Concept\Config\Contract\ConfigurableTrait;
@@ -50,15 +50,24 @@ class Singularity implements SingularityInterface, ConfigurableInterface
 
     static array $tc = [];
 
-    public function __construct(ConfigInterface $config)
+    public function __construct(?ConfigInterface $config = null)
     {
-        $this->setConfig($config);
-
-        $this->getPluginManager()
-            ->configure($this->getConfig());
+        if ($config) {
+            $this->setConfig($config);
+        }
 
         return $this;
         //$this->setCache($cache);
+    }
+
+    public function setConfig(?ConfigInterface $config):static
+    {
+        $this->___config = $config;
+
+        $this->getPluginManager()
+            ->configure($config);
+
+        return $this;
     }
 
     /**
@@ -101,6 +110,7 @@ class Singularity implements SingularityInterface, ConfigurableInterface
      */
     public function require(string $serviceId, array $args = [], ?array $dependencyStack = null, bool $forceCreate = false): object
     {
+        
         if (
             /**
              * @todo: self registration
@@ -139,6 +149,8 @@ class Singularity implements SingularityInterface, ConfigurableInterface
         if (!$forceCreate && $this->getServiceRegistry()->has($context->getSharedId())) {
 //static::$tc[$serviceId]['get'][] = $dependencyStack ?? $this->getDependencyStack();            
             $service = $this->getServiceRegistry()->get($context->getSharedId());
+        } elseif (!$forceCreate && $this->getServiceRegistry()->has($serviceId)) {
+            $service = $this->getServiceRegistry()->get($serviceId);
         } else {
 //static::$tc[$serviceId]['create'][] = $dependencyStack ?? $this->getDependencyStack();            
             $service = $this->createService($context, $args);
@@ -319,9 +331,6 @@ class Singularity implements SingularityInterface, ConfigurableInterface
         return $this->contextBuilder ??= 
             new ContextBuilder(
                 $this,
-                /**
-                 * @todo: pass data reference to do not do config duplicates
-                 */
                 $this->getConfig(),
                 $this->getCache()
             );
@@ -356,7 +365,12 @@ class Singularity implements SingularityInterface, ConfigurableInterface
      */
     protected function pushDependencyStack(string $serviceId): void
     {
-        $this->dependencyStack[] = $serviceId;
+        //$this->dependencyStack[] = $serviceId;
+        
+        /**
+         @todo: TEST THIS CHANGE CAREFULLY
+         */
+        array_unshift($this->dependencyStack, $serviceId);
     }
 
     /**
@@ -366,7 +380,12 @@ class Singularity implements SingularityInterface, ConfigurableInterface
      */
     protected function popDependencyStack(): void
     {
-        array_pop($this->dependencyStack);
+        //array_pop($this->dependencyStack);
+
+        /**
+         @todo: TEST THIS CHANGE CAREFULLY
+         */
+        array_shift($this->dependencyStack);
     }
 
     /**

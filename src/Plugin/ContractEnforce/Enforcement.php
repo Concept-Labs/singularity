@@ -17,7 +17,9 @@ class Enforcement extends AggregatePlugin
      */
     protected static function aggregate(ProtoContextInterface $context, ?object $service = null, mixed $args = null): array
     {
-        //@todo: cache
+        /**
+         @todo: cache
+         */
         $plugins = [];
         $map = $args ?? [];
         foreach ($map as $contract => $contractPlugins) {

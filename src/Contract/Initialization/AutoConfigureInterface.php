@@ -7,6 +7,7 @@ interface AutoConfigureInterface
 {
     const AUTOCONFIGURE_METHOD = 'autoConfigure';
     const CONFIGURATION_NODE = 'auto-configure';
+    
     /**
      * Configure the service
      * 

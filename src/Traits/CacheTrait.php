@@ -37,7 +37,8 @@ trait CacheTrait
      */
     protected function isCacheEnabled(): bool
     {
-        return $this->getCacheSettings(ConfigNodeInterface::NODE_ENABLED, false);
+        $enabled = $this->getCacheSettings(ConfigNodeInterface::NODE_ENABLED, false);
+        return $enabled;
     }
 
     /**

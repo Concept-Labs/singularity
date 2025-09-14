@@ -142,13 +142,19 @@ class ProtoContext implements ProtoContextInterface
      */
     public function getSharedId(): string
     {
-        return sprintf(
-            '%s&%s',
-            //$this->getServiceId(),
-            $this->getServiceClass(),
-            //hash('xxh3', json_encode($this->getDependencyStack())),
-            hash('sha256', json_encode($this->getPreferenceData()))
-        );
+        return $this->getServiceId();
+        
+        // if (!$this->getPreferenceData() || empty($this->getPreferenceData())) {
+        //     return $this->getServiceId();
+        // }
+
+        // return sprintf(
+        //     '%s&%s',
+        //     //$this->getServiceId(),
+        //     $this->getServiceClass(),
+        //     //hash('xxh3', json_encode($this->getDependencyStack())),
+        //     hash('sha256', json_encode($this->getPreferenceData()))
+        // );
         
     }
 

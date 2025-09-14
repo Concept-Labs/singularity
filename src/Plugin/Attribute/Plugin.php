@@ -6,23 +6,28 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
 class Plugin implements AttributePluginInterface
 {
-    private mixed $args = null;
 
-
+    /**
+     * @param string $pluginClass
+     * @param mixed $args
+     */
     public function __construct(
         private string $pluginClass,
-        mixed $args = null
+        private mixed $args = null
     ) {
-        $this->args = $args;
     }
 
-    
-
+    /**
+     * {@inheritDoc}
+     */
     public function getPlugin(): string
     {
         return $this->pluginClass;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getArgs(): mixed
     {
         return $this->args;
