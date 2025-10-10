@@ -6,14 +6,14 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
 
 ### Getting Started
 
-1. **[Overview](overview.md)** - Introduction to Singularity DI
+1. **[Overview](docs/overview.md)** - Introduction to Singularity DI
    - What is Singularity DI?
    - Key features
    - Core components
    - How it works
    - Use cases
 
-2. **[Getting Started](getting-started.md)** - Quick start guide
+2. **[Getting Started](docs/getting-started.md)** - Quick start guide
    - Installation
    - Basic setup
    - Complete examples
@@ -22,7 +22,7 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
 
 ### Core Concepts
 
-3. **[Configuration](configuration.md)** - Configuration reference
+3. **[Configuration](docs/configuration.md)** - Configuration reference
    - Configuration structure
    - Package-level configuration (recommended)
    - Namespace configuration
@@ -32,7 +32,7 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
    - Environment-specific config
    - Best practices
 
-4. **[Context Builder](context-builder.md)** - Dependency resolution
+4. **[Context Builder](docs/context-builder.md)** - Dependency resolution
    - How it works
    - Configuration hierarchy
    - ProtoContext structure
@@ -40,7 +40,7 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
    - Argument resolution
    - Performance optimization
 
-5. **[Lifecycle Management](lifecycle.md)** - Service lifecycle
+5. **[Lifecycle Management](docs/lifecycle.md)** - Service lifecycle
    - Lifecycle patterns (Transient, Shared, Weak, Prototype)
    - Service registry
    - Memory management
@@ -49,7 +49,7 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
 
 ### Advanced Features
 
-6. **[Plugin System](plugins.md)** - Plugin development
+6. **[Plugin System](docs/plugins.md)** - Plugin development
    - Plugin interface
    - Creating custom plugins
    - Registering plugins
@@ -57,21 +57,21 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
    - Advanced patterns
    - Best practices
 
-7. **[Factories](factories.md)** - Factory pattern
+7. **[Factories](docs/factories.md)** - Factory pattern
    - Factory interface
    - Creating factories
    - Factory patterns (Abstract, Builder, Multiton, Lazy)
    - ServiceFactory
    - Testing factories
 
-8. **[Contracts](contracts.md)** - Built-in interfaces
+8. **[Contracts](docs/contracts.md)** - Built-in interfaces
    - Initialization contracts (Injectable, AutoConfigure)
    - Lifecycle contracts (Shared, Weak, Prototype)
    - Factory contracts (LazyGhost)
    - Combining contracts
    - Creating custom contracts
 
-9. **[Advanced Usage](advanced-usage.md)** - Complex scenarios
+9. **[Advanced Usage](docs/advanced-usage.md)** - Complex scenarios
    - Multi-tenant applications
    - Middleware pattern
    - Decorator pattern
@@ -84,7 +84,7 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
 
 ### Reference
 
-10. **[API Reference](api-reference.md)** - Complete API documentation
+10. **[API Reference](docs/api-reference.md)** - Complete API documentation
     - Core classes
     - Plugin system
     - Factory system
@@ -97,28 +97,28 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
 
 ### Common Tasks
 
-- **Install and Setup:** [Getting Started → Installation](getting-started.md#installation)
-- **Configure Services:** [Configuration → Package Configuration](configuration.md#package-configuration-primary-strategy)
-- **Advanced Config Techniques:** [Configuration → Advanced Configuration Techniques](configuration.md#advanced-configuration-techniques)
-- **Create a Plugin:** [Plugins → Creating Custom Plugins](plugins.md#creating-a-custom-plugin)
-- **Use Factories:** [Factories → Creating a Factory](factories.md#creating-a-factory)
-- **Manage Lifecycle:** [Lifecycle → Lifecycle Patterns](lifecycle.md#lifecycle-patterns)
-- **Advanced Patterns:** [Advanced Usage](advanced-usage.md)
+- **Install and Setup:** [Getting Started → Installation](docs/getting-started.md#installation)
+- **Configure Services:** [Configuration → Package Configuration](docs/configuration.md#package-configuration-primary-strategy)
+- **Advanced Config Techniques:** [Configuration → Advanced Configuration Techniques](docs/configuration.md#advanced-configuration-techniques)
+- **Create a Plugin:** [Plugins → Creating Custom Plugins](docs/plugins.md#creating-a-custom-plugin)
+- **Use Factories:** [Factories → Creating a Factory](docs/factories.md#creating-a-factory)
+- **Manage Lifecycle:** [Lifecycle → Lifecycle Patterns](docs/lifecycle.md#lifecycle-patterns)
+- **Advanced Patterns:** [Advanced Usage](docs/advanced-usage.md)
 
 ### By Use Case
 
-- **Multi-Tenant Apps:** [Advanced Usage → Multi-Tenant Applications](advanced-usage.md#multi-tenant-applications)
-- **Testing:** [Advanced Usage → Testing Patterns](advanced-usage.md#testing-patterns)
-- **Performance:** [Advanced Usage → Performance Optimization](advanced-usage.md#performance-optimization)
-- **AOP:** [Advanced Usage → Aspect-Oriented Programming](advanced-usage.md#aspect-oriented-programming-aop)
+- **Multi-Tenant Apps:** [Advanced Usage → Multi-Tenant Applications](docs/advanced-usage.md#multi-tenant-applications)
+- **Testing:** [Advanced Usage → Testing Patterns](docs/advanced-usage.md#testing-patterns)
+- **Performance:** [Advanced Usage → Performance Optimization](docs/advanced-usage.md#performance-optimization)
+- **AOP:** [Advanced Usage → Aspect-Oriented Programming](docs/advanced-usage.md#aspect-oriented-programming-aop)
 
 ### By Feature
 
-- **Autowiring:** [Getting Started → Working Without Configuration](getting-started.md#working-without-configuration-autowiring)
-- **Lazy Loading:** [Contracts → LazyGhostInterface](contracts.md#lazyghostinterface)
-- **Singleton Pattern:** [Contracts → SharedInterface](contracts.md#sharedinterface)
-- **Prototype Pattern:** [Contracts → PrototypeInterface](contracts.md#prototypeinterface)
-- **Method Injection:** [Contracts → InjectableInterface](contracts.md#injectableinterface)
+- **Autowiring:** [Getting Started → Working Without Configuration](docs/getting-started.md#working-without-configuration-autowiring)
+- **Lazy Loading:** [Contracts → LazyGhostInterface](docs/contracts.md#lazyghostinterface)
+- **Singleton Pattern:** [Contracts → SharedInterface](docs/contracts.md#sharedinterface)
+- **Prototype Pattern:** [Contracts → PrototypeInterface](docs/contracts.md#prototypeinterface)
+- **Method Injection:** [Contracts → InjectableInterface](docs/contracts.md#injectableinterface)
 
 ## Documentation Structure
 
@@ -198,4 +198,4 @@ This documentation is part of the Singularity DI project and is covered by the s
 
 ---
 
-**Start Learning:** Begin with the [Overview](overview.md) or jump to [Getting Started](getting-started.md) for a hands-on introduction.
+**Start Learning:** Begin with the [Overview](docs/overview.md) or jump to [Getting Started](docs/getting-started.md) for a hands-on introduction.
