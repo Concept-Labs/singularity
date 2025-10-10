@@ -1,2 +1,0 @@
-# service-manager
-Service manager
