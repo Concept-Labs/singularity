@@ -579,41 +579,71 @@ Reference other configuration values using the `@` prefix:
 }
 ```
 
-**Note:** The `@include()` and `@path.to.value` syntax is provided by the concept/config package's plugin system.
+**Note:** The `@include()`, `@import`, `@require`, `@path.to.value`, and `${VAR}` syntax is provided by the concept/config package's plugin system.
 
-## Splitting Configuration Files
+## Advanced Configuration Techniques
 
-You can organize your configuration across multiple files using `@include()`. This helps maintain clean, modular configuration structure.
+### Configuration Directives Overview
 
-### Example: Modular Configuration Structure
+The concept/config package provides several powerful directives for organizing and managing configuration:
 
-**Main configuration file** (`concept.json`):
+- **`@include(path)`** - Includes and merges content from another file (works in nested files)
+- **`@import`** - Imports multiple files (only works in the first file in the chain)
+- **`@require(path)`** - Requires configuration from another file
+- **`@path.to.value`** - References a value from another part of the configuration
+- **`${VAR}`** - Environment variable substitution
+
+### Using @include for Modular Configuration
+
+The `@include()` directive allows you to split configuration across multiple files. This is particularly useful for organizing package-level configuration.
+
+**Important notes about `@include()`:**
+- Works in nested files (you can use `@include` inside an included file)
+- Path can be absolute or relative to the current JSON file
+- Relative paths are resolved from the location of the file containing the `@include`
+
+#### Package-Level Configuration Example
+
+**Note:** While you can organize configuration this way, it's optional. Developers may use a single `concept.json` file if they prefer.
+
+**Package structure:**
+```
+vendor/acme/my-package/
+├── concept.json                      # Main package entry point
+├── etc/
+│   ├── sdi.json                     # DI configuration root
+│   └── sdi/
+│       ├── plugin-manager.json      # Plugin configuration
+│       ├── preference.json          # Package preferences
+│       └── packages/
+│           ├── foo-bar.json         # Dependency package config
+│           └── acme-lib.json        # Another dependency config
+```
+
+**Main configuration file** (`vendor/acme/my-package/concept.json`):
 ```json
 {
-  "singularity": "@include(etc/sdi.json)",
-  "database": {
-    "host": "localhost",
-    "port": 3306
-  }
+  "singularity": "@include(etc/sdi.json)"
 }
 ```
 
-**Core DI configuration** (`etc/sdi.json`):
+**Core DI configuration** (`vendor/acme/my-package/etc/sdi.json`):
 ```json
 {
   "settings": {
-    "plugin-manager": "@include(etc/sdi/plugin-manager.json)"
+    "plugin-manager": "@include(sdi/plugin-manager.json)"
   },
-  "preference": "@include(etc/sdi/overrides.json)",
+  "preference": "@include(sdi/preference.json)",
   "package": {
-    "foo/bar": {
-      "preference": "@include(etc/sdi/preference.json)"
+    "acme/my-package": {
+      "preference": "@include(sdi/packages/package-preferences.json)"
     }
   }
 }
 ```
+**Note:** Paths are relative to `etc/sdi.json`, so `sdi/plugin-manager.json` resolves to `etc/sdi/plugin-manager.json`.
 
-**Plugin manager configuration** (`etc/sdi/plugin-manager.json`):
+**Plugin manager configuration** (`vendor/acme/my-package/etc/sdi/plugin-manager.json`):
 ```json
 {
   "plugins": {
@@ -627,62 +657,94 @@ You can organize your configuration across multiple files using `@include()`. Th
 }
 ```
 
-**Global overrides** (`etc/sdi/overrides.json`):
+**Package-level preferences** (`vendor/acme/my-package/etc/sdi/preference.json`):
 ```json
 {
-  "Service\\To\\Override": {
-    "class": "Custom\\Implementation",
+  "Acme\\MyPackage\\ServiceInterface": {
+    "class": "Acme\\MyPackage\\ServiceImpl",
     "shared": true
   }
 }
 ```
 
-**Package-level preferences** (`etc/sdi/preference.json`):
+### Using @import for Multiple Files
+
+The `@import` directive allows you to import multiple configuration files. **Important:** `@import` only works in the first file in the configuration chain (typically your main `concept.json`). It does not work inside files that are themselves imported or included.
+
+However, `@include` works perfectly inside `@import`ed files or nested `@include` files.
+
+**Example:**
 ```json
 {
-  "Foo\\Service": {
-    "class": "Foo\\ServiceImpl",
-    "arguments": {
-      "config": "@database"
+  "@import": [
+    "singularity.json",
+    "database/mysql.json",
+    "cache/redis.json"
+  ]
+}
+```
+
+**singularity.json:**
+```json
+{
+  "singularity": {
+    "preference": {
+      "App\\ServiceInterface": {
+        "class": "App\\ServiceImpl"
+      }
     }
   }
 }
 ```
 
-### Resulting Merged Configuration
+**database/mysql.json:**
+```json
+{
+  "database": {
+    "mysql": {
+      "dsn": "mysql:host=localhost;dbname=myapp",
+      "username": "${DB_USER}",
+      "password": "${DB_PASSWORD}"
+    }
+  }
+}
+```
 
-The above files merge into:
+**Note:** Files imported with `@import` are merged into the current configuration without overriding existing nodes.
+
+### Using @require Directive
+
+The `@require` directive is used to require configuration from another file:
 
 ```json
 {
   "singularity": {
-    "settings": {
-      "plugin-manager": {
-        "plugins": {
-          "Concept\\Singularity\\Plugin\\ContractEnforce\\Enforcement": {
-            "priority": 200,
-            "*": {
-              "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": {}
-            }
-          }
-        }
-      }
-    },
-    "preference": {
-      "Service\\To\\Override": {
-        "class": "Custom\\Implementation",
-        "shared": true
-      }
-    },
     "package": {
-      "foo/bar": {
-        "preference": {
-          "Foo\\Service": {
-            "class": "Foo\\ServiceImpl",
-            "arguments": {
-              "config": "@database"
-            }
-          }
+      "acme/my-package": "@require(vendor/acme/my-package/concept.json)"
+    }
+  }
+}
+```
+
+### Environment Variables with ${VAR}
+
+Use `${VAR}` syntax to substitute environment variables into your configuration:
+
+```json
+{
+  "database": {
+    "host": "${DB_HOST}",
+    "port": "${DB_PORT}",
+    "username": "${DB_USER}",
+    "password": "${DB_PASSWORD}"
+  },
+  "singularity": {
+    "preference": {
+      "App\\Cache\\CacheInterface": {
+        "class": "App\\Cache\\RedisCache",
+        "arguments": {
+          "host": "${REDIS_HOST}",
+          "port": "${REDIS_PORT}"
         }
       }
     }
@@ -690,29 +752,14 @@ The above files merge into:
 }
 ```
 
-### Benefits of Splitting Configuration
+### Benefits of Modular Configuration
 
 - **Maintainability**: Each file has a clear, focused purpose
 - **Reusability**: Share common configurations across projects
 - **Team collaboration**: Different team members can work on different config files
 - **Environment management**: Easily swap configuration for different environments
 - **Version control**: Cleaner diffs and easier to review changes
-
-### Recommended File Structure
-
-```
-project/
-├── concept.json                      # Main entry point
-├── etc/
-│   ├── sdi.json                     # DI configuration root
-│   └── sdi/
-│       ├── plugin-manager.json      # Plugin configuration
-│       ├── overrides.json           # Global preference overrides
-│       ├── preference.json          # Package preferences
-│       └── packages/
-│           ├── foo-bar.json         # Package-specific config
-│           └── acme-lib.json        # Another package config
-```
+- **Package isolation**: Keep package configuration self-contained
 
 ## Environment-Specific Configuration
 

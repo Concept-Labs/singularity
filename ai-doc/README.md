@@ -28,7 +28,7 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
    - Namespace configuration
    - Global preferences
    - Plugin configuration
-   - Splitting configuration files with @include()
+   - Advanced configuration techniques (@include, @import, @require, ${VAR})
    - Environment-specific config
    - Best practices
 
@@ -99,7 +99,7 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
 
 - **Install and Setup:** [Getting Started → Installation](getting-started.md#installation)
 - **Configure Services:** [Configuration → Package Configuration](configuration.md#package-configuration-primary-strategy)
-- **Split Config Files:** [Configuration → Splitting Configuration Files](configuration.md#splitting-configuration-files)
+- **Advanced Config Techniques:** [Configuration → Advanced Configuration Techniques](configuration.md#advanced-configuration-techniques)
 - **Create a Plugin:** [Plugins → Creating Custom Plugins](plugins.md#creating-a-custom-plugin)
 - **Use Factories:** [Factories → Creating a Factory](factories.md#creating-a-factory)
 - **Manage Lifecycle:** [Lifecycle → Lifecycle Patterns](lifecycle.md#lifecycle-patterns)

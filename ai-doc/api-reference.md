@@ -636,7 +636,12 @@ Generic runtime exception for container operations.
 
 **Note:** The `factory` and `reference` nodes are not supported in preference configuration.
 - For custom factories, implement the factory pattern in your code
-- For configuration references, use concept/config's `@include()` and `@path.to.value` syntax
+- For configuration organization, use concept/config's directives:
+  - `@include(path)` - Include files (works in nested files)
+  - `@import` - Import multiple files (only works in first file)
+  - `@require(path)` - Require configuration
+  - `@path.to.value` - Reference config values
+  - `${VAR}` - Environment variable substitution
 
 ### Settings Configuration
 

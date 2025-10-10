@@ -46,12 +46,12 @@ $config->load('config.json');
 // $config->load('vendor/*/*/concept.json');
 // Be careful with glob patterns to avoid loading unintended files
 
-// Or use modular configuration with @include()
-// Main config.json can include other files:
-// {
-//   "singularity": "@include(etc/sdi.json)"
-// }
-// See Configuration Guide for details on splitting config files
+// Configuration supports modular organization:
+// - @include(path) - Include files (works in nested files)
+// - @import - Import multiple files (only works in first file)
+// - @require(path) - Require configuration
+// - ${VAR} - Environment variable substitution
+// See Configuration Guide for details
 
 // Create container
 $container = new Singularity($config);

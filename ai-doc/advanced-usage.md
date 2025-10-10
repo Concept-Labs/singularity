@@ -780,56 +780,81 @@ Always test that services work correctly when resolved from the container.
 
 ## Configuration Organization
 
-For large applications, organize configuration across multiple files using `@include()`.
+For packages and applications, you can organize configuration across multiple files using concept/config directives.
 
-### Modular Configuration Structure
+### Configuration Directives
+
+- **`@include(path)`** - Include content from another file (works in nested files, paths relative to current file)
+- **`@import`** - Import multiple files (only works in the first/main file)
+- **`@require(path)`** - Require configuration from another file
+- **`${VAR}`** - Environment variable substitution
+
+### Package-Level Organization (Optional)
+
+Packages can optionally split their configuration for better maintainability:
 
 ```
-project/
-├── concept.json                      # Main entry
+vendor/acme/my-package/
+├── concept.json                      # Package entry point
 ├── etc/
 │   ├── sdi.json                     # DI root config
 │   └── sdi/
 │       ├── plugin-manager.json      # Plugins
-│       ├── overrides.json           # Global overrides
+│       ├── preference.json          # Preferences
 │       └── packages/
-│           ├── auth.json            # Auth package config
-│           ├── api.json             # API package config
-│           └── storage.json         # Storage package config
+│           ├── dep1.json            # Dependency 1 config
+│           └── dep2.json            # Dependency 2 config
 ```
 
-**Main file** (`concept.json`):
+**Package concept.json:**
 ```json
 {
-  "singularity": "@include(etc/sdi.json)",
-  "app": {
-    "name": "MyApp",
-    "env": "production"
-  }
+  "singularity": "@include(etc/sdi.json)"
 }
 ```
 
-**DI configuration** (`etc/sdi.json`):
+**etc/sdi.json:**
 ```json
 {
   "settings": {
-    "plugin-manager": "@include(etc/sdi/plugin-manager.json)"
+    "plugin-manager": "@include(sdi/plugin-manager.json)"
   },
   "package": {
-    "acme/auth": "@include(etc/sdi/packages/auth.json)",
-    "acme/api": "@include(etc/sdi/packages/api.json)",
-    "acme/storage": "@include(etc/sdi/packages/storage.json)"
+    "acme/my-package": {
+      "preference": "@include(sdi/preference.json)"
+    }
   }
 }
 ```
+
+### Application-Level Organization with @import
+
+Applications can use `@import` to merge multiple configuration sources:
+
+```json
+{
+  "@import": [
+    "singularity.json",
+    "database.json",
+    "cache.json"
+  ],
+  "app": {
+    "name": "${APP_NAME}",
+    "env": "${APP_ENV}"
+  }
+}
+```
+
+**Note:** `@import` only works in the first file. Use `@include` for nested file inclusion.
 
 This approach provides:
 - Clear separation of concerns
 - Easier team collaboration
 - Better version control
-- Simplified environment-specific configuration
+- Environment-specific configuration with `${VAR}`
+- Package isolation and reusability
 
-See [Configuration Guide](configuration.md#splitting-configuration-files) for complete examples.
+See [Configuration Guide](configuration.md#advanced-configuration-techniques) for complete examples.
 
 ## Next Steps
 
