@@ -480,34 +480,24 @@ class CustomFactory implements FactoryInterface
 }
 ```
 
-Configuration:
+### Custom Service Factory
 
-```json
-{
-  "singularity": {
-    "preference": {
-      "CustomService": {
-        "factory": "CustomFactory"
-      }
-    }
-  }
-}
-```
-
-ProtoContext can also set factory at runtime:
+Factories can be set at runtime via plugins or by implementing custom factory classes:
 
 ```php
 class FactoryPlugin extends AbstractPlugin
 {
     public static function before(ProtoContextInterface $context, mixed $args = null): void
     {
-        // Set custom factory
+        // Set custom factory callable
         $context->setServiceFactory(function($serviceClass, $args) {
             return new $serviceClass(...$args);
         });
     }
 }
 ```
+
+**Note:** The `setServiceFactory()` method on ProtoContext allows runtime factory customization through plugins. There is no `factory` configuration node.
 
 ### Dependency Stack
 

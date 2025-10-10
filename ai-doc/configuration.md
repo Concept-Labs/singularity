@@ -9,23 +9,31 @@ Singularity DI uses a hierarchical configuration system that allows defining ser
 ```json
 {
   "singularity": {
-    "preference": {
-      "<ServiceID>": {
-        "class": "<ConcreteClass>",
-        "shared": true|false,
-        "weak": true|false,
-        "arguments": {},
-        "plugins": {},
-        "factory": "<FactoryClass>",
-        "reference": "<config-path>"
+    "package": {
+      "<package-name>": {
+        "preference": {
+          "<ServiceID>": {
+            "class": "<ConcreteClass>",
+            "shared": true|false,
+            "weak": true|false,
+            "arguments": {},
+            "plugins": {}
+          }
+        }
       }
     },
     "namespace": {
       "<Namespace>": {
         "require": {
           "vendor/package-name": {}
-        },
-        "preference": {}
+        }
+      }
+    },
+    "preference": {
+      "<ServiceID>": {
+        "class": "<ConcreteClass>",
+        "arguments": {},
+        "plugins": {}
       }
     },
     "settings": {
@@ -37,9 +45,160 @@ Singularity DI uses a hierarchical configuration system that allows defining ser
 }
 ```
 
-## Global Preferences
+**Note:** 
+- Configuration should primarily be defined at the **package level** in `concept.json` files
+- Use **namespace** level mainly for declaring package dependencies via `require`
+- Use **global preferences** sparingly for application-specific overrides
+- The `@include()` and `@path.to.node` syntax is handled by the concept/config package for referencing other configuration values
 
-Global preferences have the highest priority and override all other configurations.
+## Package Configuration (Primary Strategy)
+
+Package-level configuration is the **recommended approach** for defining service bindings. Each package should define its own services in its `concept.json` file.
+
+### Why Package-Level Configuration?
+
+- **Encapsulation**: Each package manages its own dependencies
+- **Reusability**: Packages can be used across multiple projects with consistent behavior
+- **Auto-Discovery**: Composer autoload PSR-4 mappings automatically generate namespace dependencies
+- **Maintainability**: Changes to a package's services are contained within that package
+
+### Basic Package Configuration
+
+Create a `concept.json` in your package root:
+
+```json
+{
+  "singularity": {
+    "package": {
+      "vendor/my-logger": {
+        "preference": {
+          "Vendor\\Logger\\LoggerInterface": {
+            "class": "Vendor\\Logger\\FileLogger",
+            "shared": true
+          },
+          "Vendor\\Logger\\FormatterInterface": {
+            "class": "Vendor\\Logger\\JsonFormatter"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Real-World Package Example: Database Package
+
+**Package:** `acme/database`  
+**File:** `vendor/acme/database/concept.json`
+
+```json
+{
+  "singularity": {
+    "package": {
+      "acme/database": {
+        "preference": {
+          "Acme\\Database\\ConnectionInterface": {
+            "class": "Acme\\Database\\PDOConnection",
+            "shared": true
+          },
+          "Acme\\Database\\QueryBuilderInterface": {
+            "class": "Acme\\Database\\QueryBuilder"
+          },
+          "Acme\\Database\\MigrationRunnerInterface": {
+            "class": "Acme\\Database\\MigrationRunner",
+            "shared": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Real-World Package Example: HTTP Client
+
+**Package:** `acme/http-client`  
+**File:** `vendor/acme/http-client/concept.json`
+
+```json
+{
+  "singularity": {
+    "package": {
+      "acme/http-client": {
+        "preference": {
+          "Acme\\Http\\ClientInterface": {
+            "class": "Acme\\Http\\GuzzleClient",
+            "shared": true,
+            "arguments": {
+              "timeout": 30,
+              "verify_ssl": true
+            }
+          },
+          "Acme\\Http\\RequestFactoryInterface": {
+            "class": "Acme\\Http\\RequestFactory"
+          },
+          "Acme\\Http\\ResponseParserInterface": {
+            "class": "Acme\\Http\\JsonResponseParser"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Package with Settings
+
+**Package:** `acme/cache`  
+**File:** `vendor/acme/cache/concept.json`
+
+```json
+{
+  "singularity": {
+    "settings": {
+      "plugin-manager": {
+        "plugins": {
+          "Acme\\Cache\\Plugin\\CacheWarmer": {
+            "enabled": true,
+            "warmup_on_boot": false
+          }
+        }
+      }
+    },
+    "package": {
+      "acme/cache": {
+        "preference": {
+          "Acme\\Cache\\CacheInterface": {
+            "class": "Acme\\Cache\\RedisCache",
+            "shared": true,
+            "weak": true,
+            "arguments": {
+              "host": "localhost",
+              "port": 6379,
+              "database": 0
+            }
+          },
+          "Acme\\Cache\\SerializerInterface": {
+            "class": "Acme\\Cache\\JsonSerializer"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Global Preferences (Application-Level Overrides)
+
+Global preferences should be used **sparingly** for application-specific overrides. Use them only when you need to override a package's default behavior for your specific application.
+
+**Best Practice:** Prefer package-level configuration over global preferences.
+
+### When to Use Global Preferences
+
+- Override a third-party package's service binding for your application
+- Provide application-specific configuration values
+- Temporary overrides during development or testing
 
 ### Simple Class Binding
 
@@ -193,9 +352,104 @@ class UserService {
 }
 ```
 
-## Namespace Configuration
+## Namespace Configuration (Dependency Management)
 
-Namespace configuration allows you to define service bindings for all classes within a specific namespace. The `preference` node within a namespace has higher priority than package-level preferences but lower priority than global preferences.
+Namespace configuration is primarily used to declare **package dependencies** for specific namespaces. This is typically auto-generated via composer.json autoloading.
+
+**Best Practice:** Let auto-discovery handle namespace configuration. Only use namespace preferences in specific situations where package-level configuration is insufficient.
+
+### Namespace Dependencies (Primary Use)
+
+Use namespaces to declare which packages should be loaded for classes in a specific namespace:
+
+```json
+{
+  "singularity": {
+    "namespace": {
+      "App\\Payment\\": {
+        "require": {
+          "acme/payment-gateway": {},
+          "acme/http-client": {}
+        }
+      },
+      "App\\Reporting\\": {
+        "require": {
+          "acme/pdf-generator": {},
+          "acme/excel-writer": {}
+        }
+      }
+    }
+  }
+}
+```
+
+### Auto-Discovery from Composer
+
+When auto-discovery is enabled, namespace configuration is automatically generated from `composer.json`:
+
+**Example `composer.json`:**
+```json
+{
+  "name": "acme/my-app",
+  "require": {
+    "acme/database": "^1.0",
+    "acme/logger": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Acme\\MyApp\\": "src/"
+    }
+  }
+}
+```
+
+This automatically generates:
+```json
+{
+  "singularity": {
+    "namespace": {
+      "Acme\\MyApp\\": {
+        "require": {
+          "acme/database": {},
+          "acme/logger": {}
+        }
+      }
+    }
+  }
+}
+```
+
+### Namespace Preferences (Use Sparingly)
+
+In specific situations, you may need to override services for an entire namespace. Use this only when package-level configuration is insufficient.
+
+**Example: Multi-tenant application with tenant-specific namespaces**
+
+```json
+{
+  "singularity": {
+    "namespace": {
+      "App\\Tenant\\Premium\\": {
+        "require": {
+          "acme/premium-features": {}
+        },
+        "preference": {
+          "App\\Storage\\StorageInterface": {
+            "class": "App\\Storage\\S3Storage"
+          }
+        }
+      },
+      "App\\Tenant\\Basic\\": {
+        "preference": {
+          "App\\Storage\\StorageInterface": {
+            "class": "App\\Storage\\LocalStorage"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 ### Namespace Resolution Priority
 
@@ -205,95 +459,6 @@ When resolving dependencies, namespaces are processed from shortest to longest:
 - `Foo\Bar\Baz\` is processed last (highest namespace priority)
 
 Longer (more specific) namespaces override shorter (more general) ones.
-
-### Basic Namespace Preferences
-
-```json
-{
-  "singularity": {
-    "namespace": {
-      "App\\Module\\Admin\\": {
-        "preference": {
-          "App\\Auth\\AuthInterface": {
-            "class": "App\\Auth\\AdminAuth"
-          }
-        }
-      },
-      "App\\Module\\Public\\": {
-        "preference": {
-          "App\\Auth\\AuthInterface": {
-            "class": "App\\Auth\\PublicAuth"
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-**Result:**
-- Services in `App\Module\Admin\*` will receive `AdminAuth`
-- Services in `App\Module\Public\*` will receive `PublicAuth`
-- Other services use default binding (if defined)
-
-### Namespace with Package Requirements
-
-The `require` node specifies which packages should be processed for a namespace. This is useful for declaring dependencies.
-
-```json
-{
-  "singularity": {
-    "namespace": {
-      "App\\Payment\\": {
-        "require": {
-          "vendor/payment-gateway": {}
-        },
-        "preference": {
-          "PaymentProcessorInterface": {
-            "class": "App\\Payment\\StripeProcessor"
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-**Note:** The `require` object is reserved for future use. The `version` field may be added in future versions.
-
-### Auto-Discovery
-
-Singularity DI supports auto-discovery based on `composer.json`. When enabled, namespace configuration is automatically generated from package PSR-4 autoload definitions.
-
-**Example `composer.json`:**
-```json
-{
-  "name": "foo/baz",
-  "require": {
-    "some-vendor/lib": "^1.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "Foo\\Baz\\": "src/"
-    }
-  }
-}
-```
-
-This automatically creates an in-memory namespace configuration:
-```json
-{
-  "singularity": {
-    "namespace": {
-      "Foo\\Baz\\": {
-        "require": {
-          "some-vendor/lib": {}
-        }
-      }
-    }
-  }
-}
-```
 
 ## Plugin Configuration
 
@@ -356,84 +521,46 @@ This automatically creates an in-memory namespace configuration:
 }
 ```
 
-## Factory Configuration
-
-### Custom Factory Class
-
-```json
-{
-  "singularity": {
-    "preference": {
-      "App\\Model\\User": {
-        "factory": "App\\Factory\\UserFactory"
-      }
-    }
-  }
-}
-```
-
-Factory implementation:
-
-```php
-<?php
-namespace App\Factory;
-
-use Concept\Singularity\Factory\FactoryInterface;
-
-class UserFactory implements FactoryInterface {
-    public function create(string $serviceId, array $args = []): object {
-        // Custom instantiation logic
-        $user = new \App\Model\User();
-        $user->initialize();
-        return $user;
-    }
-}
-```
-
-### Factory with Arguments
-
-```json
-{
-  "singularity": {
-    "preference": {
-      "App\\Service\\CacheService": {
-        "factory": "App\\Factory\\CacheFactory",
-        "arguments": {
-          "driver": "redis",
-          "prefix": "app_"
-        }
-      }
-    }
-  }
-}
-```
-
 ## Configuration References
 
-Reuse configuration blocks with references:
+Configuration references are handled by the `concept/config` package using special syntax. You don't need a separate `references` node.
+
+### Using @include for External Files
 
 ```json
 {
   "singularity": {
-    "references": {
-      "database-config": {
-        "class": "App\\Database\\PDODatabase",
-        "shared": true,
-        "arguments": {
-          "dsn": "mysql:host=localhost;dbname=app",
-          "username": "root",
-          "password": "secret"
-        }
+    "settings": "@include(etc/settings.json)",
+    "package": {
+      "acme/my-package": {
+        "preference": "@include(config/preferences.json)"
       }
-    },
-    "preference": {
-      "App\\Database\\ReadDatabase": {
-        "reference": "database-config"
-      },
-      "App\\Database\\WriteDatabase": {
-        "reference": "database-config",
-        "arguments": {
-          "dsn": "mysql:host=writeserver;dbname=app"
+    }
+  }
+}
+```
+
+### Using @path for Value References
+
+Reference other configuration values using the `@` prefix:
+
+```json
+{
+  "database": {
+    "host": "localhost",
+    "port": 3306
+  },
+  "singularity": {
+    "package": {
+      "acme/database": {
+        "preference": {
+          "Acme\\Database\\ConnectionInterface": {
+            "class": "Acme\\Database\\Connection",
+            "arguments": {
+              "host": "@database.host",
+              "port": "@database.port"
+            }
+          }
         }
       }
     }
@@ -441,7 +568,7 @@ Reuse configuration blocks with references:
 }
 ```
 
-**Note:** Referenced configuration can be partially overridden.
+**Note:** The `@include()` and `@path.to.value` syntax is provided by the concept/config package's plugin system.
 
 ## Environment-Specific Configuration
 
@@ -717,59 +844,128 @@ if (!empty($errors)) {
 
 ## Best Practices
 
-### 1. Use Interfaces for Service IDs
+### 1. Use Package-Level Configuration First
+
+**Primary Strategy:** Define services in package `concept.json` files.
 
 ```json
+// vendor/acme/user-service/concept.json
 {
   "singularity": {
-    "preference": {
-      "App\\Service\\UserServiceInterface": {
-        "class": "App\\Service\\UserService"
+    "package": {
+      "acme/user-service": {
+        "preference": {
+          "Acme\\User\\UserServiceInterface": {
+            "class": "Acme\\User\\UserService",
+            "shared": true
+          }
+        }
       }
     }
   }
 }
 ```
 
-### 2. Mark Stateless Services as Shared
+### 2. Use Namespace for Dependencies, Not Preferences
 
+**Good:** Declare package dependencies
 ```json
 {
   "singularity": {
-    "preference": {
-      "App\\Service\\ValidationService": {
-        "class": "App\\Service\\ValidationService",
-        "shared": true
+    "namespace": {
+      "App\\Payment\\": {
+        "require": {
+          "acme/payment-gateway": {},
+          "acme/logger": {}
+        }
       }
     }
   }
 }
 ```
 
-### 3. Use Weak References for Large Objects
-
+**Avoid:** Namespace-level preferences (use only in specific cases)
 ```json
+// Only use when truly necessary for tenant-specific behavior
 {
   "singularity": {
-    "preference": {
-      "App\\Service\\ImageProcessor": {
-        "class": "App\\Service\\ImageProcessor",
-        "shared": true,
-        "weak": true
+    "namespace": {
+      "App\\Tenant\\Premium\\": {
+        "preference": {
+          "StorageInterface": {
+            "class": "S3Storage"
+          }
+        }
       }
     }
   }
 }
 ```
 
-### 4. Organize by Environment
+### 3. Use Interfaces for Service IDs
+
+```json
+{
+  "singularity": {
+    "package": {
+      "acme/my-package": {
+        "preference": {
+          "Acme\\Service\\UserServiceInterface": {
+            "class": "Acme\\Service\\UserService"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### 4. Mark Stateless Services as Shared
+
+```json
+{
+  "singularity": {
+    "package": {
+      "acme/validator": {
+        "preference": {
+          "Acme\\Validator\\ValidationService": {
+            "class": "Acme\\Validator\\ValidationService",
+            "shared": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### 5. Use Weak References for Large Objects
+
+```json
+{
+  "singularity": {
+    "package": {
+      "acme/image": {
+        "preference": {
+          "Acme\\Image\\ImageProcessor": {
+            "class": "Acme\\Image\\ImageProcessor",
+            "shared": true,
+            "weak": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### 6. Organize Package Configuration Files
 
 ```
-config/
-  ├── config.json (common settings)
-  ├── config.development.json
-  ├── config.production.json
-  └── config.testing.json
+vendor/acme/my-package/
+  ├── concept.json (main DI configuration)
+  ├── src/
+  └── composer.json
 ```
 
 ### 5. Use Configuration References for Reusability

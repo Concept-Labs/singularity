@@ -630,11 +630,13 @@ Generic runtime exception for container operations.
   },
   "plugins": {                 // Service-specific plugins
     "PluginClass": "config"    // Plugin configuration or false to disable
-  },
-  "factory": "string",         // Custom factory class
-  "reference": "string"        // Reference to predefined config
+  }
 }
 ```
+
+**Note:** The `factory` and `reference` nodes are not supported in preference configuration.
+- For custom factories, implement the factory pattern in your code
+- For configuration references, use concept/config's `@include()` and `@path.to.value` syntax
 
 ### Settings Configuration
 

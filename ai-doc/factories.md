@@ -96,33 +96,38 @@ class ProductFactory implements FactoryInterface
 }
 ```
 
-## Configuring Factories
+## Using Factories
 
-### Simple Factory Configuration
+Factories in Singularity DI are implemented programmatically, not through configuration nodes. You create factory classes and use them directly in your code or via dependency injection.
 
-```json
-{
-  "singularity": {
-    "preference": {
-      "App\\Model\\User": {
-        "factory": "App\\Factory\\UserFactory"
-      }
-    }
-  }
-}
+### Factory Pattern Implementation
+
+**Note:** There is no `factory` configuration node in preferences. Factories are used through code patterns.
+
+### Method 1: Direct Factory Usage
+
+```php
+// Inject factory and use it
+$factory = $container->get(UserFactoryInterface::class);
+$user = $factory->create('App\\Model\\User', [
+    'email' => 'user@example.com'
+]);
 ```
 
-### Factory with Arguments
+### Method 2: Factory as a Service
+
+Configure the factory itself as a service:
 
 ```json
 {
   "singularity": {
-    "preference": {
-      "App\\Model\\Product": {
-        "factory": "App\\Factory\\ProductFactory",
-        "arguments": {
-          "id": 1,
-          "includeMetadata": true
+    "package": {
+      "acme/user": {
+        "preference": {
+          "Acme\\User\\UserFactoryInterface": {
+            "class": "Acme\\User\\UserFactory",
+            "shared": true
+          }
         }
       }
     }
@@ -130,27 +135,20 @@ class ProductFactory implements FactoryInterface
 }
 ```
 
-## Using Factories
-
-### From Container
+Then inject and use it:
 
 ```php
-// Container uses configured factory
-$user = $container->get('App\\Model\\User');
-
-// Override arguments at runtime
-$product = $container->create('App\\Model\\Product', [
-    'id' => 42
-]);
-```
-
-### Direct Factory Usage
-
-```php
-$factory = new UserFactory();
-$user = $factory->create('App\\Model\\User', [
-    'email' => 'user@example.com'
-]);
+class UserService
+{
+    public function __construct(
+        private UserFactoryInterface $userFactory
+    ) {}
+    
+    public function createUser(string $email): User
+    {
+        return $this->userFactory->create(User::class, ['email' => $email]);
+    }
+}
 ```
 
 ## Factory Patterns
@@ -184,15 +182,19 @@ class PaymentGatewayFactory implements PaymentGatewayFactoryInterface
 }
 ```
 
-Configuration:
+Configuration for the factory:
 
 ```json
 {
   "singularity": {
-    "preference": {
-      "App\\Factory\\PaymentGatewayFactoryInterface": {
-        "class": "App\\Factory\\PaymentGatewayFactory",
-        "shared": true
+    "package": {
+      "acme/payment": {
+        "preference": {
+          "Acme\\Payment\\PaymentGatewayFactoryInterface": {
+            "class": "Acme\\Payment\\PaymentGatewayFactory",
+            "shared": true
+          }
+        }
       }
     }
   }
