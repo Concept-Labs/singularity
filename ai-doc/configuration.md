@@ -581,6 +581,139 @@ Reference other configuration values using the `@` prefix:
 
 **Note:** The `@include()` and `@path.to.value` syntax is provided by the concept/config package's plugin system.
 
+## Splitting Configuration Files
+
+You can organize your configuration across multiple files using `@include()`. This helps maintain clean, modular configuration structure.
+
+### Example: Modular Configuration Structure
+
+**Main configuration file** (`concept.json`):
+```json
+{
+  "singularity": "@include(etc/sdi.json)",
+  "database": {
+    "host": "localhost",
+    "port": 3306
+  }
+}
+```
+
+**Core DI configuration** (`etc/sdi.json`):
+```json
+{
+  "settings": {
+    "plugin-manager": "@include(etc/sdi/plugin-manager.json)"
+  },
+  "preference": "@include(etc/sdi/overrides.json)",
+  "package": {
+    "foo/bar": {
+      "preference": "@include(etc/sdi/preference.json)"
+    }
+  }
+}
+```
+
+**Plugin manager configuration** (`etc/sdi/plugin-manager.json`):
+```json
+{
+  "plugins": {
+    "Concept\\Singularity\\Plugin\\ContractEnforce\\Enforcement": {
+      "priority": 200,
+      "*": {
+        "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": {}
+      }
+    }
+  }
+}
+```
+
+**Global overrides** (`etc/sdi/overrides.json`):
+```json
+{
+  "Service\\To\\Override": {
+    "class": "Custom\\Implementation",
+    "shared": true
+  }
+}
+```
+
+**Package-level preferences** (`etc/sdi/preference.json`):
+```json
+{
+  "Foo\\Service": {
+    "class": "Foo\\ServiceImpl",
+    "arguments": {
+      "config": "@database"
+    }
+  }
+}
+```
+
+### Resulting Merged Configuration
+
+The above files merge into:
+
+```json
+{
+  "singularity": {
+    "settings": {
+      "plugin-manager": {
+        "plugins": {
+          "Concept\\Singularity\\Plugin\\ContractEnforce\\Enforcement": {
+            "priority": 200,
+            "*": {
+              "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": {}
+            }
+          }
+        }
+      }
+    },
+    "preference": {
+      "Service\\To\\Override": {
+        "class": "Custom\\Implementation",
+        "shared": true
+      }
+    },
+    "package": {
+      "foo/bar": {
+        "preference": {
+          "Foo\\Service": {
+            "class": "Foo\\ServiceImpl",
+            "arguments": {
+              "config": "@database"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Benefits of Splitting Configuration
+
+- **Maintainability**: Each file has a clear, focused purpose
+- **Reusability**: Share common configurations across projects
+- **Team collaboration**: Different team members can work on different config files
+- **Environment management**: Easily swap configuration for different environments
+- **Version control**: Cleaner diffs and easier to review changes
+
+### Recommended File Structure
+
+```
+project/
+├── concept.json                      # Main entry point
+├── etc/
+│   ├── sdi.json                     # DI configuration root
+│   └── sdi/
+│       ├── plugin-manager.json      # Plugin configuration
+│       ├── overrides.json           # Global preference overrides
+│       ├── preference.json          # Package preferences
+│       └── packages/
+│           ├── foo-bar.json         # Package-specific config
+│           └── acme-lib.json        # Another package config
+```
+
 ## Environment-Specific Configuration
 
 ### Development Environment

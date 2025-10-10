@@ -778,6 +778,59 @@ class PaymentService {}
 
 Always test that services work correctly when resolved from the container.
 
+## Configuration Organization
+
+For large applications, organize configuration across multiple files using `@include()`.
+
+### Modular Configuration Structure
+
+```
+project/
+├── concept.json                      # Main entry
+├── etc/
+│   ├── sdi.json                     # DI root config
+│   └── sdi/
+│       ├── plugin-manager.json      # Plugins
+│       ├── overrides.json           # Global overrides
+│       └── packages/
+│           ├── auth.json            # Auth package config
+│           ├── api.json             # API package config
+│           └── storage.json         # Storage package config
+```
+
+**Main file** (`concept.json`):
+```json
+{
+  "singularity": "@include(etc/sdi.json)",
+  "app": {
+    "name": "MyApp",
+    "env": "production"
+  }
+}
+```
+
+**DI configuration** (`etc/sdi.json`):
+```json
+{
+  "settings": {
+    "plugin-manager": "@include(etc/sdi/plugin-manager.json)"
+  },
+  "package": {
+    "acme/auth": "@include(etc/sdi/packages/auth.json)",
+    "acme/api": "@include(etc/sdi/packages/api.json)",
+    "acme/storage": "@include(etc/sdi/packages/storage.json)"
+  }
+}
+```
+
+This approach provides:
+- Clear separation of concerns
+- Easier team collaboration
+- Better version control
+- Simplified environment-specific configuration
+
+See [Configuration Guide](configuration.md#splitting-configuration-files) for complete examples.
+
 ## Next Steps
 
 - [API Reference](api-reference.md) - Complete API documentation

@@ -24,10 +24,11 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
 
 3. **[Configuration](configuration.md)** - Configuration reference
    - Configuration structure
-   - Global preferences
+   - Package-level configuration (recommended)
    - Namespace configuration
+   - Global preferences
    - Plugin configuration
-   - Factory configuration
+   - Splitting configuration files with @include()
    - Environment-specific config
    - Best practices
 
@@ -97,7 +98,8 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
 ### Common Tasks
 
 - **Install and Setup:** [Getting Started → Installation](getting-started.md#installation)
-- **Configure Services:** [Configuration → Global Preferences](configuration.md#global-preferences)
+- **Configure Services:** [Configuration → Package Configuration](configuration.md#package-configuration-primary-strategy)
+- **Split Config Files:** [Configuration → Splitting Configuration Files](configuration.md#splitting-configuration-files)
 - **Create a Plugin:** [Plugins → Creating Custom Plugins](plugins.md#creating-a-custom-plugin)
 - **Use Factories:** [Factories → Creating a Factory](factories.md#creating-a-factory)
 - **Manage Lifecycle:** [Lifecycle → Lifecycle Patterns](lifecycle.md#lifecycle-patterns)
