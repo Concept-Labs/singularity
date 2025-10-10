@@ -198,14 +198,14 @@ Different database connections per tenant:
   "singularity": {
     "namespace": {
       "App\\Tenant\\Alpha\\": {
-        "override": {
+        "preference": {
           "DatabaseInterface": {
             "class": "AlphaDatabase"
           }
         }
       },
       "App\\Tenant\\Beta\\": {
-        "override": {
+        "preference": {
           "DatabaseInterface": {
             "class": "BetaDatabase"
           }

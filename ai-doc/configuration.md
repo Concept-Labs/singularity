@@ -22,8 +22,10 @@ Singularity DI uses a hierarchical configuration system that allows defining ser
     },
     "namespace": {
       "<Namespace>": {
-        "require": {},
-        "override": {}
+        "require": {
+          "vendor/package-name": {}
+        },
+        "preference": {}
       }
     },
     "settings": {
@@ -193,23 +195,32 @@ class UserService {
 
 ## Namespace Configuration
 
-Namespace configuration allows you to define service bindings for all classes within a specific namespace.
+Namespace configuration allows you to define service bindings for all classes within a specific namespace. The `preference` node within a namespace has higher priority than package-level preferences but lower priority than global preferences.
 
-### Basic Namespace Override
+### Namespace Resolution Priority
+
+When resolving dependencies, namespaces are processed from shortest to longest:
+- `Foo\` is processed first (lowest priority)
+- `Foo\Bar\` is processed next (medium priority)
+- `Foo\Bar\Baz\` is processed last (highest namespace priority)
+
+Longer (more specific) namespaces override shorter (more general) ones.
+
+### Basic Namespace Preferences
 
 ```json
 {
   "singularity": {
     "namespace": {
       "App\\Module\\Admin\\": {
-        "override": {
+        "preference": {
           "App\\Auth\\AuthInterface": {
             "class": "App\\Auth\\AdminAuth"
           }
         }
       },
       "App\\Module\\Public\\": {
-        "override": {
+        "preference": {
           "App\\Auth\\AuthInterface": {
             "class": "App\\Auth\\PublicAuth"
           }
@@ -227,20 +238,56 @@ Namespace configuration allows you to define service bindings for all classes wi
 
 ### Namespace with Package Requirements
 
+The `require` node specifies which packages should be processed for a namespace. This is useful for declaring dependencies.
+
 ```json
 {
   "singularity": {
     "namespace": {
       "App\\Payment\\": {
         "require": {
-          "vendor/payment-gateway": {
-            "version": "^2.0"
-          }
+          "vendor/payment-gateway": {}
         },
-        "override": {
+        "preference": {
           "PaymentProcessorInterface": {
             "class": "App\\Payment\\StripeProcessor"
           }
+        }
+      }
+    }
+  }
+}
+```
+
+**Note:** The `require` object is reserved for future use. The `version` field may be added in future versions.
+
+### Auto-Discovery
+
+Singularity DI supports auto-discovery based on `composer.json`. When enabled, namespace configuration is automatically generated from package PSR-4 autoload definitions.
+
+**Example `composer.json`:**
+```json
+{
+  "name": "foo/baz",
+  "require": {
+    "some-vendor/lib": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Foo\\Baz\\": "src/"
+    }
+  }
+}
+```
+
+This automatically creates an in-memory namespace configuration:
+```json
+{
+  "singularity": {
+    "namespace": {
+      "Foo\\Baz\\": {
+        "require": {
+          "some-vendor/lib": {}
         }
       }
     }
@@ -467,7 +514,7 @@ $container = new Singularity($config);
   "singularity": {
     "namespace": {
       "App\\Tenant\\Alpha\\": {
-        "override": {
+        "preference": {
           "App\\Database\\DatabaseInterface": {
             "class": "App\\Database\\MySQLDatabase",
             "arguments": {
@@ -483,7 +530,7 @@ $container = new Singularity($config);
         }
       },
       "App\\Tenant\\Beta\\": {
-        "override": {
+        "preference": {
           "App\\Database\\DatabaseInterface": {
             "class": "App\\Database\\PostgreSQLDatabase",
             "arguments": {
@@ -508,9 +555,18 @@ $container = new Singularity($config);
 The container merges configuration from multiple sources in this order (lowest to highest priority):
 
 1. **Package configuration** (`concept.json` in vendor packages)
-2. **Namespace overrides** (namespace-specific bindings)
+2. **Namespace preferences** (namespace-specific bindings, shorter namespaces first, then longer)
 3. **Global preferences** (application-level bindings)
 4. **Runtime overrides** (arguments passed to `create()`)
+
+### Namespace Priority Details
+
+Within namespace preferences, **longer (more specific) namespaces have higher priority**:
+- `Foo\` - lowest namespace priority
+- `Foo\Bar\` - medium namespace priority  
+- `Foo\Bar\Baz\` - highest namespace priority
+
+This allows you to set general defaults for broad namespaces and override them for specific sub-namespaces.
 
 ### Example
 
@@ -518,9 +574,13 @@ The container merges configuration from multiple sources in this order (lowest t
 // Package: vendor/concept-labs/logger/concept.json
 {
   "singularity": {
-    "preference": {
-      "Psr\\Log\\LoggerInterface": {
-        "class": "Concept\\Logger\\FileLogger"
+    "package": {
+      "concept-labs/logger": {
+        "preference": {
+          "Psr\\Log\\LoggerInterface": {
+            "class": "Concept\\Logger\\FileLogger"
+          }
+        }
       }
     }
   }
@@ -531,7 +591,7 @@ The container merges configuration from multiple sources in this order (lowest t
   "singularity": {
     "namespace": {
       "App\\Admin\\": {
-        "override": {
+        "preference": {
           "Psr\\Log\\LoggerInterface": {
             "class": "App\\Logger\\AdminLogger"
           }
@@ -548,8 +608,8 @@ The container merges configuration from multiple sources in this order (lowest t
 ```
 
 **Resolution:**
-- Services in `App\Admin\*`: Use `AdminLogger`
-- Other services: Use `ApplicationLogger`
+- Services in `App\Admin\*`: Use `AdminLogger` (namespace preference)
+- Other services: Use `ApplicationLogger` (global preference)
 - If global preference not set: Use `FileLogger` from package
 
 ## Advanced Configuration Patterns

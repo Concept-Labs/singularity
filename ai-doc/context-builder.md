@@ -79,7 +79,7 @@ User requests: $container->get(UserServiceInterface::class)
   "singularity": {
     "namespace": {
       "App\\Admin\\": {
-        "override": {
+        "preference": {
           "MyPackage\\Logger\\LoggerInterface": {
             "class": "MyPackage\\Logger\\DatabaseLogger"
           }

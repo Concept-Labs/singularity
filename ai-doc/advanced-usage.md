@@ -51,7 +51,7 @@ class TenantAwareFactory implements FactoryInterface
   "singularity": {
     "namespace": {
       "App\\Tenant\\Alpha\\": {
-        "override": {
+        "preference": {
           "DatabaseInterface": {
             "class": "AlphaDatabase",
             "arguments": {
@@ -61,7 +61,7 @@ class TenantAwareFactory implements FactoryInterface
         }
       },
       "App\\Tenant\\Beta\\": {
-        "override": {
+        "preference": {
           "DatabaseInterface": {
             "class": "BetaDatabase",
             "arguments": {

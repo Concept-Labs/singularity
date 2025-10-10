@@ -653,15 +653,17 @@ Generic runtime exception for container operations.
 ```json
 {
   "require": {                 // Package dependencies
-    "vendor/package": {}
+    "vendor/package": {}       // Empty object, reserved for future use
   },
-  "override": {                // Service overrides for namespace
+  "preference": {              // Service preferences for namespace
     "ServiceId": {
       "class": "ConcreteClass"
     }
   }
 }
 ```
+
+**Note:** The `require` object structure is reserved for future enhancements. Version constraints may be added in later versions.
 
 ---
 
