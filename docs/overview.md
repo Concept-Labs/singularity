@@ -62,7 +62,7 @@ Plugins can intercept service creation:
 
 **Built-in plugins include:**
 - `SharedPlugin` - Manages singleton behavior
-- `DependencyInjection` - Handles `__di()` method injection
+- `DependencyInjection` - Handles attribute `#[Injector]` method injection
 - `AutoConfigure` - Calls `__configure()` after instantiation
 - `LazyGhost` - Creates lazy-loading proxies
 - `NewInstance` - Controls instance creation
