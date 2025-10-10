@@ -12,7 +12,7 @@ Singularity implements the standard `Psr\Container\ContainerInterface` with thes
 
 - **`get(string $id)`** - Retrieves a service instance by identifier
 - **`has(string $id)`** - Checks if a service exists or can be created
-- **`create(string $id, array $overrideArgs = [])`** - Extension method that creates a fresh instance, bypassing cache
+instance, bypassing cache
 
 ### Context-Aware Dependency Injection
 
