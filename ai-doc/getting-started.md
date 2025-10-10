@@ -48,8 +48,7 @@ $config->load('config.json');
 
 // Configuration supports modular organization:
 // - @include(path) - Include files (works in nested files)
-// - @import - Import multiple files (only works in first file)
-// - @require(path) - Require configuration
+// - @import - Import multiple files with glob patterns (only works in first file)
 // - ${VAR} - Environment variable substitution
 // See Configuration Guide for details
 

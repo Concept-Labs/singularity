@@ -28,7 +28,7 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
    - Namespace configuration
    - Global preferences
    - Plugin configuration
-   - Advanced configuration techniques (@include, @import, @require, ${VAR})
+   - Advanced configuration techniques (@include, @import, ${VAR})
    - Environment-specific config
    - Best practices
 

@@ -638,8 +638,7 @@ Generic runtime exception for container operations.
 - For custom factories, implement the factory pattern in your code
 - For configuration organization, use concept/config's directives:
   - `@include(path)` - Include files (works in nested files)
-  - `@import` - Import multiple files (only works in first file)
-  - `@require(path)` - Require configuration
+  - `@import` - Import multiple files with optional glob patterns (only works in first file)
   - `@path.to.value` - Reference config values
   - `${VAR}` - Environment variable substitution
 

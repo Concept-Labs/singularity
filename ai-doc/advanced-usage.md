@@ -785,8 +785,7 @@ For packages and applications, you can organize configuration across multiple fi
 ### Configuration Directives
 
 - **`@include(path)`** - Include content from another file (works in nested files, paths relative to current file)
-- **`@import`** - Import multiple files (only works in the first/main file)
-- **`@require(path)`** - Require configuration from another file
+- **`@import`** - Import multiple files with optional glob patterns (only works in the first/main file)
 - **`${VAR}`** - Environment variable substitution
 
 ### Package-Level Organization (Optional)

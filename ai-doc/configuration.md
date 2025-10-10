@@ -579,7 +579,7 @@ Reference other configuration values using the `@` prefix:
 }
 ```
 
-**Note:** The `@include()`, `@import`, `@require`, `@path.to.value`, and `${VAR}` syntax is provided by the concept/config package's plugin system.
+**Note:** The `@include()`, `@import`, `@path.to.value`, and `${VAR}` syntax is provided by the concept/config package's plugin system.
 
 ## Advanced Configuration Techniques
 
@@ -588,8 +588,7 @@ Reference other configuration values using the `@` prefix:
 The concept/config package provides several powerful directives for organizing and managing configuration:
 
 - **`@include(path)`** - Includes and merges content from another file (works in nested files)
-- **`@import`** - Imports multiple files (only works in the first file in the chain)
-- **`@require(path)`** - Requires configuration from another file
+- **`@import`** - Imports multiple files with optional glob patterns (only works in the first file in the chain)
 - **`@path.to.value`** - References a value from another part of the configuration
 - **`${VAR}`** - Environment variable substitution
 
@@ -673,13 +672,39 @@ The `@import` directive allows you to import multiple configuration files. **Imp
 
 However, `@include` works perfectly inside `@import`ed files or nested `@include` files.
 
-**Example:**
+**Basic Example:**
 ```json
 {
   "@import": [
     "singularity.json",
     "database/mysql.json",
     "cache/redis.json"
+  ]
+}
+```
+
+**Using Glob Patterns:**
+
+You can also use glob patterns to import multiple files matching a pattern:
+
+```json
+{
+  "@import": [
+    "file1.json",
+    "file2.json",
+    "some_path/*-concept.json",
+    "${VENDOR}/*/concept.json"
+  ]
+}
+```
+
+**Example with environment variable and glob:**
+```json
+{
+  "@import": [
+    "config/singularity.json",
+    "config/packages/*.json",
+    "${VENDOR}/acme/*/concept.json"
   ]
 }
 ```
@@ -711,20 +736,6 @@ However, `@include` works perfectly inside `@import`ed files or nested `@include
 ```
 
 **Note:** Files imported with `@import` are merged into the current configuration without overriding existing nodes.
-
-### Using @require Directive
-
-The `@require` directive is used to require configuration from another file:
-
-```json
-{
-  "singularity": {
-    "package": {
-      "acme/my-package": "@require(vendor/acme/my-package/concept.json)"
-    }
-  }
-}
-```
 
 ### Environment Variables with ${VAR}
 
