@@ -4,11 +4,15 @@
 
 Singularity DI provides flexible lifecycle management for services, supporting multiple patterns from singleton to prototype. Understanding lifecycle options helps you optimize memory usage and control object creation.
 
+**Important:** By default, `$container->get()` returns a **new instance** each time unless the service is explicitly configured as shared or implements `SharedInterface`. Developers must be aware of shared instances through configuration or contract interfaces.
+
 ## Lifecycle Patterns
 
 ### 1. Transient (Default)
 
 **Behavior:** New instance created every time, not cached.
+
+**Important Note:** The `get()` method always returns a new instance unless the service is marked as shared. This is different from many DI containers that default to singleton behavior.
 
 **When to Use:**
 - Stateful objects that shouldn't be shared

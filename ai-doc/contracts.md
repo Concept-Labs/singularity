@@ -8,7 +8,7 @@ Singularity DI provides a set of built-in interfaces (contracts) that services c
 
 ### InjectableInterface
 
-Enables method-based dependency injection via the `__di()` method.
+Enables method-based dependency injection via the `__di()` method (deprecated) or methods marked with the `#[Injector]` attribute.
 
 **Location:** `Concept\Singularity\Contract\Initialization\InjectableInterface`
 
@@ -28,18 +28,19 @@ interface InjectableInterface
     
     /**
      * Method to inject dependencies into the service
-     *
+     * @deprecated Use #[Injector] attribute instead
      * @return void
      */
     // public function __di(): void;
 }
 ```
 
-#### Usage Example
+#### Usage with #[Injector] Attribute (Recommended)
 
 ```php
 <?php
 use Concept\Singularity\Contract\Initialization\InjectableInterface;
+use Concept\Singularity\Plugin\Attribute\Injector;
 
 class EmailService implements InjectableInterface
 {
@@ -48,9 +49,10 @@ class EmailService implements InjectableInterface
     private EventDispatcherInterface $dispatcher;
     
     /**
-     * Dependencies injected via __di() method
+     * Dependencies injected via #[Injector] attribute
      */
-    public function __di(
+    #[Injector]
+    public function setDependencies(
         LoggerInterface $logger,
         MailerInterface $mailer,
         EventDispatcherInterface $dispatcher
@@ -68,6 +70,55 @@ class EmailService implements InjectableInterface
     }
 }
 ```
+
+#### Multiple Injection Methods
+
+You can have multiple methods marked with `#[Injector]`:
+
+```php
+class ComplexService implements InjectableInterface
+{
+    #[Injector]
+    public function injectCore(
+        DatabaseInterface $db,
+        LoggerInterface $logger
+    ): void {
+        $this->db = $db;
+        $this->logger = $logger;
+    }
+    
+    #[Injector]
+    public function injectOptional(
+        ?CacheInterface $cache = null,
+        ?EventDispatcherInterface $events = null
+    ): void {
+        $this->cache = $cache;
+        $this->events = $events;
+    }
+}
+```
+
+#### Legacy __di() Method (Deprecated)
+
+```php
+<?php
+use Concept\Singularity\Contract\Initialization\InjectableInterface;
+
+class LegacyService implements InjectableInterface
+{
+    private LoggerInterface $logger;
+    
+    /**
+     * @deprecated Use #[Injector] attribute instead
+     */
+    public function __di(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
+    }
+}
+```
+
+**Note:** The `__di()` method is deprecated. Use the `#[Injector]` attribute on public methods instead.
 
 #### When to Use
 
@@ -778,6 +829,126 @@ class CacheService implements SharedInterface, AutoConfigureInterface {}
 // ⚠️ Questionable: Prototype + Shared don't make sense together
 class BadService implements PrototypeInterface, SharedInterface {}
 ```
+
+## Contract Enforcement with Aggregate Plugins
+
+Singularity DI uses the `Enforcement` aggregate plugin to apply contract-specific plugins automatically. This pattern allows you to map contracts to their corresponding plugins.
+
+### The Enforcement Plugin
+
+The `Enforcement` plugin extends `AggregatePlugin` and maps contracts to plugins:
+
+```json
+{
+  "singularity": {
+    "settings": {
+      "plugin-manager": {
+        "plugins": {
+          "Concept\\Singularity\\Plugin\\ContractEnforce\\Enforcement": {
+            "priority": 200,
+            "*": {
+              "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": {}
+            },
+            "Concept\\Singularity\\Contract\\Factory\\LazyGhostInterface": {
+              "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": true
+            },
+            "Concept\\Singularity\\Contract\\Initialization\\AutoConfigureInterface": {
+              "Concept\\Singularity\\Plugin\\ContractEnforce\\Initialization\\AutoConfigure": true
+            },
+            "Concept\\Singularity\\Contract\\Initialization\\InjectableInterface": {
+              "Concept\\Singularity\\Plugin\\ContractEnforce\\Initialization\\DependencyInjection": true
+            },
+            "Concept\\Singularity\\Contract\\Lifecycle\\SharedInterface": {
+              "Concept\\Singularity\\Plugin\\ContractEnforce\\Lifecycle\\Shared": {
+                "shared": true,
+                "weak": true
+              }
+            },
+            "Concept\\Singularity\\Contract\\Lifecycle\\PrototypeInterface": {
+              "Concept\\Singularity\\Plugin\\ContractEnforce\\Lifecycle\\Prototype": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Understanding the Configuration
+
+- **`"*"`**: Applies to all services (global strategy)
+- **Contract mappings**: Maps each contract interface to its plugin
+- **Plugin args**: `true`, `{}`, or configuration object enables the plugin; `false` disables it
+- **Priority**: Controls when the plugin runs (higher = earlier)
+
+### Custom Contract Example
+
+You can add your own contracts to the enforcement configuration:
+
+```php
+<?php
+namespace App\Contract;
+
+interface CacheableInterface
+{
+    public function getCacheKey(): string;
+    public function getCacheTtl(): int;
+}
+```
+
+Add to configuration:
+
+```json
+{
+  "singularity": {
+    "settings": {
+      "plugin-manager": {
+        "plugins": {
+          "Concept\\Singularity\\Plugin\\ContractEnforce\\Enforcement": {
+            "App\\Contract\\CacheableInterface": {
+              "App\\Plugin\\CachingPlugin": {
+                "ttl": 3600
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Global Service Lifecycle Strategy
+
+You can set a default lifecycle for ALL services using the `"*"` key:
+
+```json
+{
+  "singularity": {
+    "settings": {
+      "plugin-manager": {
+        "plugins": {
+          "Concept\\Singularity\\Plugin\\ContractEnforce\\Enforcement": {
+            "*": {
+              "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": {},
+              "Concept\\Singularity\\Plugin\\ContractEnforce\\Lifecycle\\Shared": {
+                "weak": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+This makes ALL services:
+- Lazy-loaded (via LazyGhost plugin)
+- Shared with weak references (via Shared plugin)
+
+**Note:** Individual service configurations can still override this global strategy.
 
 ## Next Steps
 

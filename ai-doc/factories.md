@@ -340,7 +340,9 @@ class LazyServiceFactory implements FactoryInterface
 
 ## ServiceFactory
 
-Singularity DI includes a built-in `ServiceFactory` for standard instantiation:
+Singularity DI provides an abstract `ServiceFactory` base class that developers can extend to create custom factories. This factory encapsulates the container, helping avoid the service locator anti-pattern.
+
+### ServiceFactory Interface
 
 ```php
 <?php
@@ -349,34 +351,129 @@ namespace Concept\Singularity\Factory;
 interface ServiceFactoryInterface
 {
     /**
-     * Create a service using reflection and dependency injection
+     * Create a service instance
      */
-    public function createService(
-        ProtoContextInterface $context,
-        array $overrideArgs = []
-    ): object;
+    public function create(string $serviceId, array $args = []): object;
 }
 ```
 
-### How ServiceFactory Works
+### Extending ServiceFactory
+
+The abstract `ServiceFactory` class provides protected methods to access the container and create services:
 
 ```php
-// 1. Get service class from context
-$serviceClass = $context->getServiceClass();
+<?php
+namespace Concept\Singularity\Factory;
 
-// 2. Get reflection
-$reflection = $context->getReflection();
-
-// 3. Resolve constructor arguments
-$constructor = $reflection->getConstructor();
-$args = $this->resolveArguments($constructor, $context, $overrideArgs);
-
-// 4. Create instance
-$instance = $reflection->newInstanceArgs($args);
-
-// 5. Return service
-return $instance;
+abstract class ServiceFactory implements ServiceFactoryInterface, SharedInterface
+{
+    public function __construct(
+        private readonly SingularityInterface $container,
+        private ProtoContextInterface $context
+    ) {}
+    
+    /**
+     * Create service - implement this method
+     */
+    abstract public function create(string $serviceId, array $args = []): object;
+    
+    /**
+     * Helper method to create service using container
+     */
+    protected function createService(string $serviceId, array $args = []): object
+    {
+        return $this->getContainer()->create($serviceId, $args);
+    }
+    
+    /**
+     * Get the container
+     */
+    protected function getContainer(): SingularityInterface
+    {
+        return $this->container;
+    }
+    
+    /**
+     * Get the context
+     */
+    protected function getContext(): ProtoContextInterface
+    {
+        return $this->context;
+    }
+}
 ```
+
+### Custom ServiceFactory Example
+
+```php
+<?php
+namespace App\Factory;
+
+use Concept\Singularity\Factory\ServiceFactory;
+
+class UserFactory extends ServiceFactory
+{
+    public function create(string $serviceId, array $args = []): object
+    {
+        // Custom validation
+        if (empty($args['email'])) {
+            throw new \InvalidArgumentException('Email is required');
+        }
+        
+        // Create the user using container
+        $user = $this->createService($serviceId, $args);
+        
+        // Additional initialization
+        $user->setCreatedAt(new \DateTime());
+        $user->setStatus('active');
+        
+        return $user;
+    }
+}
+```
+
+### Using ServiceFactory as a Dependency
+
+Configure the factory as a service:
+
+```json
+{
+  "singularity": {
+    "package": {
+      "acme/user": {
+        "preference": {
+          "Acme\\User\\UserFactoryInterface": {
+            "class": "App\\Factory\\UserFactory",
+            "shared": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Inject and use:
+
+```php
+class UserService
+{
+    public function __construct(
+        private UserFactoryInterface $userFactory
+    ) {}
+    
+    public function createUser(string $email): User
+    {
+        return $this->userFactory->create(User::class, ['email' => $email]);
+    }
+}
+```
+
+**Why use ServiceFactory?**
+- Encapsulates container access, avoiding service locator anti-pattern
+- Provides clean dependency injection
+- Allows custom initialization logic
+- Factory is shared by default (implements SharedInterface)
 
 ## Advanced Factory Techniques
 

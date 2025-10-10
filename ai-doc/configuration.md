@@ -159,7 +159,6 @@ Create a `concept.json` in your package root:
       "plugin-manager": {
         "plugins": {
           "Acme\\Cache\\Plugin\\CacheWarmer": {
-            "enabled": true,
             "warmup_on_boot": false
           }
         }
@@ -385,7 +384,7 @@ Use namespaces to declare which packages should be loaded for classes in a speci
 
 ### Auto-Discovery from Composer
 
-When auto-discovery is enabled, namespace configuration is automatically generated from `composer.json`:
+When auto-discovery is enabled, configuration is automatically generated from `composer.json`:
 
 **Example `composer.json`:**
 ```json
@@ -403,12 +402,19 @@ When auto-discovery is enabled, namespace configuration is automatically generat
 }
 ```
 
-This automatically generates:
+This automatically generates in-memory configuration:
 ```json
 {
   "singularity": {
     "namespace": {
       "Acme\\MyApp\\": {
+        "require": {
+          "acme/my-app": {}
+        }
+      }
+    },
+    "package": {
+      "acme/my-app": {
         "require": {
           "acme/database": {},
           "acme/logger": {}
@@ -418,6 +424,11 @@ This automatically generates:
   }
 }
 ```
+
+**How it works:**
+- The **namespace** node maps the PSR-4 namespace to its own package
+- The **package** node maps the package to its composer dependencies
+- This allows proper dependency resolution based on the namespace hierarchy
 
 ### Namespace Preferences (Use Sparingly)
 
@@ -471,11 +482,9 @@ Longer (more specific) namespaces override shorter (more general) ones.
       "plugin-manager": {
         "plugins": {
           "MyApp\\DI\\Plugin\\LoggingPlugin": {
-            "enabled": true,
             "logPath": "/var/log/di.log"
           },
           "MyApp\\DI\\Plugin\\CachingPlugin": {
-            "enabled": true,
             "ttl": 3600
           }
         }
@@ -484,6 +493,8 @@ Longer (more specific) namespaces override shorter (more general) ones.
   }
 }
 ```
+
+**Note:** Plugins are enabled by default when configured. To disable a plugin, set its value to `false`.
 
 ### Service-Specific Plugins
 
@@ -494,15 +505,15 @@ Longer (more specific) namespaces override shorter (more general) ones.
       "App\\Service\\ExpensiveService": {
         "class": "App\\Service\\ExpensiveService",
         "plugins": {
-          "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": {
-            "enabled": true
-          }
+          "Concept\\Singularity\\Plugin\\ContractEnforce\\Factory\\LazyGhost": {}
         }
       }
     }
   }
 }
 ```
+
+**Note:** An empty object `{}` or any configuration value enables the plugin. Set to `false` to disable.
 
 ### Disable Plugin for Specific Service
 

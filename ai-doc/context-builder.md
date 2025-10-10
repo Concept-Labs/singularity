@@ -6,12 +6,28 @@ The `ContextBuilder` is responsible for analyzing service requests and building 
 
 ## How It Works
 
+### ProtoContext Caching
+
+The `ContextBuilder` can cache previously built `ProtoContext` objects to improve performance. When a service is requested multiple times with the same configuration, the cached ProtoContext can be reused instead of rebuilding it.
+
+**Benefits of caching:**
+- Faster service resolution for repeated requests
+- Reduced overhead from configuration merging
+- Better performance in production environments
+
+**Note:** Caching is configurable and may be disabled during development for easier debugging.
+
 ### Service Resolution Flow
 
 ```
 User requests: $container->get(UserServiceInterface::class)
                     ↓
         ContextBuilder::build()
+                    ↓
+    ┌───────────────────────────────────┐
+    │ Check ProtoContext cache          │
+    │ (if enabled and available)        │
+    └───────────────────────────────────┘
                     ↓
     ┌───────────────────────────────────┐
     │ 1. Identify namespace & package   │
@@ -39,6 +55,7 @@ User requests: $container->get(UserServiceInterface::class)
                     ↓
     ┌───────────────────────────────────┐
     │ 7. Create ProtoContext object     │
+    │    Cache for future use           │
     └───────────────────────────────────┘
                     ↓
             Service Creation

@@ -42,6 +42,10 @@ use Concept\Config\Config;
 $config = new Config();
 $config->load('config.json');
 
+// Or load multiple files using glob pattern
+// $config->load('vendor/*/*/concept.json');
+// Be careful with glob patterns to avoid loading unintended files
+
 // Create container
 $container = new Singularity($config);
 ```
@@ -215,18 +219,23 @@ $service->doWork(); // Outputs: "Working..."
 
 ## Using Dependency Injection Method
 
-Implement `InjectableInterface` to use method injection:
+Implement `InjectableInterface` and use the `#[Injector]` attribute for method injection:
 
 ```php
 <?php
 use Concept\Singularity\Contract\Initialization\InjectableInterface;
+use Concept\Singularity\Plugin\Attribute\Injector;
 
 class EmailService implements InjectableInterface {
     private LoggerInterface $logger;
     private MailerInterface $mailer;
     
-    // Dependencies injected via __di() method
-    public function __di(LoggerInterface $logger, MailerInterface $mailer): void {
+    // Dependencies injected via #[Injector] attribute
+    #[Injector]
+    public function setDependencies(
+        LoggerInterface $logger,
+        MailerInterface $mailer
+    ): void {
         $this->logger = $logger;
         $this->mailer = $mailer;
     }
@@ -252,7 +261,7 @@ Configuration:
 }
 ```
 
-The `DependencyInjection` plugin will automatically call `__di()` method after instantiation.
+The `DependencyInjection` plugin will automatically resolve and call methods marked with `#[Injector]` after instantiation.
 
 ## Using Auto-Configuration
 
