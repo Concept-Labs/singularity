@@ -1,8 +1,74 @@
-# Singularity DI Documentation
+# Singularity DI
 
-Comprehensive documentation for the Singularity Dependency Injection Container.
+A next-generation PSR-11 compliant Dependency Injection Container for PHP 8.0+.
 
-## Table of Contents
+Singularity DI provides context-aware dependency resolution, a powerful plugin system, and flexible configuration management, serving as the core of the Concept Labs ecosystem.
+
+## Features
+
+- ✅ **PSR-11 Compliant** - Standard container interface with extensions
+- 🔄 **Automatic Dependency Resolution (Autowiring)** - Zero-configuration for simple cases
+- 🎯 **Context-Aware Injection** - Different implementations based on context
+- 🔌 **Powerful Plugin System** - Intercept and customize service creation
+- 🔁 **Flexible Lifecycle Management** - Singleton, Prototype, Weak references, and more
+- ⚙️ **Configuration-Driven** - Package, namespace, and global configuration
+- 🚀 **Performance Optimized** - Efficient caching and lazy loading
+- 📦 **Composer Integration** - Auto-discovery from composer packages
+
+## Quick Start
+
+### Installation
+
+```bash
+composer require concept-labs/singularity
+```
+
+### Basic Usage
+
+```php
+<?php
+require 'vendor/autoload.php';
+
+use Concept\Singularity\Singularity;
+use Concept\Config\Config;
+
+// Initialize container
+$config = new Config();
+$container = new Singularity($config);
+
+// Get a service (autowiring)
+$service = $container->get(MyService::class);
+
+// Use the service
+$service->doSomething();
+```
+
+### Configuration Example
+
+Create a `concept.json` file in your package:
+
+```json
+{
+  "singularity": {
+    "package": {
+      "your-vendor/your-package": {
+        "preference": {
+          "App\\ServiceInterface": {
+            "class": "App\\ServiceImplementation",
+            "shared": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Documentation
+
+Complete documentation is available in the [docs/](docs/) directory:
+
+### Table of Contents
 
 ### Getting Started
 
@@ -171,7 +237,9 @@ Found an error or want to improve the documentation?
 
 1. Make your changes
 2. Submit a pull request
-4. Include clear description of changes
+3. Include clear description of changes
+
+For documentation changes, edit files in the `docs/` directory.
 
 ## License
 
