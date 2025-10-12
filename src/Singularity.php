@@ -110,13 +110,8 @@ class Singularity implements SingularityInterface
     protected function require(string $serviceId, array $args = [], ?array $dependencyStack = null, bool $forceCreate = false): object
     {
         /**
-         @todo
+         @todo remove auto-self registration
          */
-
-        if ($serviceId == "Concept\\SimpleHttpExample\\Classes\\SomeService") {
-            $debug = 1;
-        
-        }
         if (
             /**
              * @todo: self registration
@@ -143,6 +138,10 @@ class Singularity implements SingularityInterface
         } else {
 //static::$tc[$serviceId]['create'][] = $dependencyStack ?? $this->getDependencyStack();            
             $service = $this->createService($context, $args);
+            $isShared =$context->getPreferenceConfig()->get('shared') ?? false;
+            if ($isShared) {
+                $this->getServiceRegistry()->register($context->getSharedId(), $service, $context->getPreferenceConfig()->get('weak') ?? false);
+            }
         }
 
         // $service = 
@@ -325,9 +324,9 @@ class Singularity implements SingularityInterface
 
         if ($type->getName() == ProtoContextInterface::class) {
             /**
-             * NOTE: When service requests context as dependency the current context is returned
+             NOTE: When service requests context as dependency the current context is returned
              */
-            return $context;
+            return clone $context;
         }
 
         /**
@@ -350,12 +349,12 @@ class Singularity implements SingularityInterface
             is_array($preferenceArgument) 
                 && isset($preferenceArgument['type']) 
                 && $preferenceArgument['type'] === 'service'
-                && isset($preferenceArgument['id'])
+                && isset($preferenceArgument['preference'])
             ) {
             /**
              * If preference argument is service reference then resolve it from container
              */
-            $argument = $this->get($preferenceArgument['id']);
+            $argument = $this->get($preferenceArgument['preference']);
 
             if ($parameter->getType() && !$parameter->getType()->isBuiltin() && !$argument instanceof ($parameter->getType()->getName())) {
                 throw new RuntimeException(
