@@ -104,6 +104,7 @@ Comprehensive documentation for the Singularity Dependency Injection Container.
 - **Use Factories:** [Factories → Creating a Factory](docs/factories.md#creating-a-factory)
 - **Manage Lifecycle:** [Lifecycle → Lifecycle Patterns](docs/lifecycle.md#lifecycle-patterns)
 - **Advanced Patterns:** [Advanced Usage](docs/advanced-usage.md)
+- **Run Tests:** [Testing Documentation](tests/README.md)
 
 ### By Use Case
 
@@ -171,7 +172,39 @@ Found an error or want to improve the documentation?
 
 1. Make your changes
 2. Submit a pull request
+3. Run tests: `./run-tests.sh` or `composer test`
 4. Include clear description of changes
+
+## Testing
+
+Singularity DI has comprehensive test coverage using both PHPUnit and PEST frameworks.
+
+### Quick Start
+
+```bash
+# Install dependencies
+composer install
+
+# Run all tests
+./run-tests.sh
+
+# Or run specific test suites
+./run-tests.sh phpunit   # PHPUnit tests only
+./run-tests.sh pest      # PEST tests only
+./run-tests.sh unit      # Unit tests only
+./run-tests.sh coverage  # Generate coverage report
+```
+
+### Test Coverage
+
+- **26 test files** covering unit and integration tests
+- **Core classes:** Singularity, ProtoContext, ServiceRegistry, PluginManager
+- **Plugins:** AbstractPlugin, AggregatePlugin, AutoConfigure, Lifecycle
+- **Factories:** FactoryInterface implementations
+- **Exceptions:** Error handling and validation
+- **Integration tests:** Full workflow validation
+
+See [Testing Documentation](tests/README.md) for detailed information.
 
 ## License
 

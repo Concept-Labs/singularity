@@ -36,6 +36,17 @@
             "pestphp/pest-plugin": true
         }
     },
+    "scripts": {
+        "test": "phpunit",
+        "test:unit": "phpunit --testsuite Unit",
+        "test:integration": "phpunit --testsuite Integration",
+        "test:pest": "pest",
+        "test:coverage": "phpunit --coverage-html coverage/",
+        "test:all": [
+            "@test",
+            "@test:pest"
+        ]
+    },
     "extra": {
         "concept": {
             
