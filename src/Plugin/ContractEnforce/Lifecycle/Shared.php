@@ -2,6 +2,7 @@
 namespace Concept\Singularity\Plugin\ContractEnforce\Lifecycle;
 
 use Concept\Singularity\Context\ProtoContextInterface;
+use Concept\Singularity\Contract\Lifecycle\Shared\WeakInterface;
 use Concept\Singularity\Plugin\AbstractPlugin;
 
 class Shared extends AbstractPlugin
@@ -19,11 +20,15 @@ class Shared extends AbstractPlugin
         }
 
         $shared = $args['shared'] ?? true;
-        $weak = $args['weak'] ?? false;
+        $weak = $args['weak'] ?? $service instanceof WeakInterface;
 
-        
 
         if ($shared && !$context->getContainer()->has($context->getSharedId())) {
+            echo sprintf(
+                "<br>REGISTER SHARED for %s with id %s",
+                $context->getServiceId(),
+                $context->getSharedId()
+            );
             $context->getContainer()->register($context->getSharedId(), $service, $weak);
         }
     }
