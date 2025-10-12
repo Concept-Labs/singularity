@@ -1,7 +1,0 @@
-/vendor/
-/.phpunit.cache/
-/composer.lock
-/.idea/
-/.vscode/
-/phpunit.xml.dist
-/.pest/
