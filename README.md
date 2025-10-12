@@ -2,6 +2,22 @@
 
 Comprehensive documentation for the Singularity Dependency Injection Container.
 
+## Requirements
+
+- **PHP Version:** >= 8.2
+- **PSR-11:** Container Interface ^2.0
+- **Dependencies:**
+  - `psr/container` ^2
+  - `concept-labs/config` ^2
+  - `concept-labs/simple-cache` ^1
+  - `concept-labs/composer` ^1
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2025 Concept-Labs
+
 ## Table of Contents
 
 ### Getting Started
