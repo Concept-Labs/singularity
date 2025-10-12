@@ -22,30 +22,10 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.5",
-        "pestphp/pest": "^2.34",
-        "pestphp/pest-plugin-arch": "^2.7"
     },
     "autoload-dev": {
         "psr-4": {
-            "Concept\\Singularity\\Tests\\": "tests/"
         }
-    },
-    "config": {
-        "allow-plugins": {
-            "pestphp/pest-plugin": true
-        }
-    },
-    "scripts": {
-        "test": "phpunit",
-        "test:unit": "phpunit --testsuite Unit",
-        "test:integration": "phpunit --testsuite Integration",
-        "test:pest": "pest",
-        "test:coverage": "phpunit --coverage-html coverage/",
-        "test:all": [
-            "@test",
-            "@test:pest"
-        ]
     },
     "extra": {
         "concept": {
