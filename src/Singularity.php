@@ -23,7 +23,7 @@ use Concept\Singularity\Plugin\PluginManagerInterface;
 use Concept\Singularity\Traits\CacheTrait;
 use Concept\Singularity\Traits\SettingsTrait;
 
-class Singularity implements SingularityInterface, ConfigurableInterface
+class Singularity implements SingularityInterface
 {
 
     use ConfigurableTrait;
@@ -57,7 +57,6 @@ class Singularity implements SingularityInterface, ConfigurableInterface
         }
 
         return $this;
-        //$this->setCache($cache);
     }
 
     public function setConfig(?ConfigInterface $config):static
@@ -108,9 +107,16 @@ class Singularity implements SingularityInterface, ConfigurableInterface
      * @inheritDoc
      * 
      */
-    public function require(string $serviceId, array $args = [], ?array $dependencyStack = null, bool $forceCreate = false): object
+    protected function require(string $serviceId, array $args = [], ?array $dependencyStack = null, bool $forceCreate = false): object
     {
+        /**
+         @todo
+         */
+
+        if ($serviceId == "Concept\\SimpleHttpExample\\Classes\\SomeService") {
+            $debug = 1;
         
+        }
         if (
             /**
              * @todo: self registration
@@ -122,24 +128,7 @@ class Singularity implements SingularityInterface, ConfigurableInterface
             return $this;
         }
 
-        /**
-         * @todo implement PSR cache
-         */
-
-        // if ($this->getServiceRegistry()->has($serviceId)) {
-        //     return $this->getServiceRegistry()->get($serviceId);
-        // }
-         
         
-        // $contextCacheKey = $this->getProtoContextCache()->key($serviceId, $dependencyStack ?? $this->getDependencyStack());
-        // if ($this->getProtoContextCache()->has($contextCacheKey)) {
-
-        //     $context = $this->getProtoContextCache()->get($contextCacheKey);
-        // } else {
-
-        //     $context = $this->buildServiceContext($serviceId, $dependencyStack ?? $this->getDependencyStack());
-        //     $this->getProtoContextCache()->set($contextCacheKey, $context);
-        // }
 
         $context = $this->buildServiceContext($serviceId, $dependencyStack ?? $this->getDependencyStack());
 
@@ -206,12 +195,19 @@ class Singularity implements SingularityInterface, ConfigurableInterface
             throw new NotInstantiableException($context);
         }
 
+        if (!empty($args)) {
+            $debug = 1;
+        }
+
         $args = empty($args) 
-            ? $this->resolveDependencies($context, $args)
+            ? $this->resolveParameters($context, $args)
             : $args;
         
         $this->getPluginManager()->before($context, PluginInterface::class);
 
+        /**
+         * Use factory if it is provided in context (f.e. by Factory plugin)
+         */
         $factory = $context->getServiceFactory()
             //Fallback to new instance factory
             ?? static fn (...$args) => new ($context->getServiceClass())(...$args);
@@ -226,62 +222,88 @@ class Singularity implements SingularityInterface, ConfigurableInterface
     }
 
     /**
-     * Resolve dependencies
-     * 
+     * Resolve arguments
+     *
      * @param ProtoContextInterface $context
      * @param array $args
      * 
      * @return array
      */
-    protected function resolveDependencies(ProtoContextInterface $context, array $args = []): array
+    protected function resolveParameters(ProtoContextInterface $context, array $args = []): array
     {
         $deps = [];
-        $params = $context->getReflection()->getConstructor()?->getParameters() ?? [];
-        foreach ($params as $param) {
-            $deps[] = $this->resolveDependency($param, $context, $args);
+
+        $constructorParameters = $context->getReflection()->getConstructor()?->getParameters() ?? [];
+        
+        foreach ($constructorParameters as $parameter) {
+            $deps[] = $this->resolveParameter($parameter, $context, $args);
         }
 
         return $deps;
     }
 
+    
+
     /**
-     * Resolve dependency
+     * Resolve parameter
+     * 
+     * - Check if parameter is provided directly in arguments - use it
+     * - Check if parameter is provided in preference arguments - use it
+     * - Check if parameter has default value - use it
+     * - Check if parameter is optional - use null
+     * - If parameter has no type hint throw exception
+     * - If parameter is type hinted with ProtoContextInterface return current context (special case)
+     * - If parameter is type hinted with built-in type and was not provided in arguments or preference arguments throw exception
+     * - If parameter is type hinted with service id (class/interface/custom id) request it from container
      * 
      * @param \ReflectionParameter $param
      * @param array $args
      * 
      * @return mixed
      */
-    protected function resolveDependency(\ReflectionParameter $param, ProtoContextInterface $context, array $args = []): mixed
+    protected function resolveParameter(\ReflectionParameter $parameter, ProtoContextInterface $context, array $args = []): mixed
     {
-        if (isset($args[$param->getName()])) {
+        $namedArgument = $parameter->getName();
+        /**
+         * Resolve parameter by type hint
+         * 
+         * @var \ReflectionNamedType|null $type
+         */
+        $type = $parameter->getType();
+
+        if (isset($args[$namedArgument])) {
             /**
-             * Parameter is provided (f.e. from factory)
+             * If parameter is provided directly in arguments then prefer it
              */
-            return $args[$param->getName()];
+            return $args[$namedArgument];
         }
 
-        if ($param->isDefaultValueAvailable() && !$context->hasPreferenceArgument($param->getName())) {
+        if ($context->hasPreferenceArgument($namedArgument)) {
+            return $this->resolvePreferenceArgument(
+                $context->getPreferenceArgument($namedArgument),
+                $parameter
+            );
+        }
+
+        if ($parameter->isDefaultValueAvailable()) {
             /**
              * Parameter has default value and is not provided in preferences config
              */
-            return $param->getDefaultValue();
+            return $parameter->getDefaultValue();
         }
 
-        if ($param->isOptional() && !$context->hasPreferenceArgument($param->getName())) {
+        if ($parameter->isOptional()) {
             /**
              * Parameter is optional and is not provided in preferences config
              */
             return null;
         }
 
-        $type = $param->getType();
-
         if ($type === null) {
             throw new RuntimeException(
                 sprintf(
                     'Unable to resolve dependency for parameter "%s". Service "%s"("%s") has no type hint',
-                    $param->getName(),
+                    $parameter->getName(),
                     $context->getServiceId(),
                     $context->getServiceClass()
                 )
@@ -289,18 +311,11 @@ class Singularity implements SingularityInterface, ConfigurableInterface
         }
 
         if ($type->isBuiltin()) {
-            /**
-             * When service requests scalar type dependency 
-             * the preference argument is returned if it is provided
-             */
-            if ($context->hasPreferenceArgument($param->getName())) {
-                return $context->getPreferenceArgument($param->getName());
-            }
-
             throw new RuntimeException(
                 sprintf(
-                    'Unable to resolve dependency for parameter "%s" for service "%s" ("%s").',
-                    $param->getName(),
+                    'Unable to resolve dependency for parameter "(%s)%s" for service "%s" ("%s").',
+                    $type->getName(),
+                    $parameter->getName(),
                     $context->getServiceId(),
                     $context->getServiceClass()
                 )
@@ -322,6 +337,47 @@ class Singularity implements SingularityInterface, ConfigurableInterface
     }
 
     /**
+     * Resolve configured argument
+     * 
+     * @param mixed $preferenceArgument
+     * @param \ReflectionParameter $parameter
+     * 
+     * @return mixed
+     */
+    protected function resolvePreferenceArgument(mixed $preferenceArgument, \ReflectionParameter $parameter): mixed
+    {
+        if (
+            is_array($preferenceArgument) 
+                && isset($preferenceArgument['type']) 
+                && $preferenceArgument['type'] === 'service'
+                && isset($preferenceArgument['id'])
+            ) {
+            /**
+             * If preference argument is service reference then resolve it from container
+             */
+            $argument = $this->get($preferenceArgument['id']);
+
+            if ($parameter->getType() && !$parameter->getType()->isBuiltin() && !$argument instanceof ($parameter->getType()->getName())) {
+                throw new RuntimeException(
+                    sprintf(
+                        'Unable to resolve dependency for parameter "(%s)%s" for service "%s" ("%s"). Preference argument is not instance of "%s", "%s" given.',
+                        $parameter->getType()->getName(),
+                        $parameter->getName(),
+                        $parameter->getDeclaringClass()->getName(),
+                        $parameter->getDeclaringClass()->getFileName(),
+                        get_debug_type($argument),
+                        get_debug_type($argument)
+                    )
+                );
+            }
+
+            $preferenceArgument = $argument;
+        }
+
+        return $preferenceArgument;
+    }
+
+    /**
      * Get context builder
      * 
      * @return ContextBuilderInterface
@@ -331,7 +387,6 @@ class Singularity implements SingularityInterface, ConfigurableInterface
         return $this->contextBuilder ??= 
             new ContextBuilder(
                 $this,
-                $this->getConfig(),
                 $this->getCache()
             );
     }

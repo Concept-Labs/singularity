@@ -11,7 +11,7 @@ class ProtoContextCache extends SimpleCache implements ProtoContextCacheInterfac
      */
     public function key(string $serviceId, array $stack): string
     {
-        return sprintf('%s@%s', $serviceId, hash('xxh3', json_encode($stack)).uniqid());
+        return sprintf('%s@%s', $serviceId, hash('xxh3', json_encode($stack)));
     }
 
     /**

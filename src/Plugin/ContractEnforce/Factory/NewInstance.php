@@ -29,7 +29,7 @@ class NewInstance extends AbstractPlugin
     public static function factory(ProtoContextInterface $context, mixed $args = null): callable
     {
         return 
-            fn(...$arguments) => new ($context->getServiceClass())(...$arguments);
+            fn(...$arguments) => new ($context->getServiceClass())(...$args);
     }
 
 }

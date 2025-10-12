@@ -12,7 +12,10 @@ interface ConfigNodeInterface
     const NODE_REQUIRE = 'require';
     const NODE_PREFERENCE = 'preference';
     const NODE_CLASS = 'class';
-    const NODE_ARGUMENTS = 'args';
+    const NODE_PARAMETERS = 'parameters';
+    const NODE_ARGUMENTS = 'arguments';
+    
+    //const NODE_ARGUMENTS = 'args';
     const NODE_PREFERENCE_PLUGIN = 'plugin';
     const NODE_ENABLED = 'enabled';
 

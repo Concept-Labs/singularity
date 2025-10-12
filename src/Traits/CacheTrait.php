@@ -16,6 +16,11 @@ trait CacheTrait
     {
         if (null === $this->cache) {
             if ($this->isCacheEnabled()) {
+                /**
+                 @todo: require specified cache service
+                 */
+                //$this->cache = $this->get(\Psr\SimpleCache\CacheInterface::class);
+
                 $class = $this->getCacheServiceClass();
                 $args = $this->getCacheServiceArgs();
                 $this->cache = new $class(
@@ -61,6 +66,14 @@ trait CacheTrait
         return $this->getCacheSettings(ConfigNodeInterface::NODE_ARGUMENTS);
     }
 
+    /**
+     * Get cache settings
+     * 
+     * @param string $path
+     * @param mixed $default
+     * 
+     * @return mixed
+     */
     protected function getCacheSettings(string $path = '', mixed $default = null)
     {
         $path = sprintf(

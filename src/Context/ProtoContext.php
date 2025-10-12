@@ -54,6 +54,13 @@ class ProtoContext implements ProtoContextInterface
     private ?ConfigInterface $preferenceConfig = null;
 
     /**
+     * The preference arguments cache
+     * 
+     * @var array|null
+     */
+    private ?array $preferenceArguments = null;
+
+    /**
      * The reflection methods cache
      * Key as filter. e.g. ReflectionMethod::IS_PUBLIC, '*'
      * 
@@ -234,7 +241,7 @@ class ProtoContext implements ProtoContextInterface
      */
     public function getPreferenceArguments(): array
     {
-        return $this->getPreferenceConfig()
+        return $this->preferenceArguments ??= $this->getPreferenceConfig()
             ->get(ConfigNodeInterface::NODE_ARGUMENTS) ?? [];
     }
 
@@ -249,9 +256,12 @@ class ProtoContext implements ProtoContextInterface
     /**
      * @inheritDoc
      */
-    public function getPreferenceArgument(string $name, mixed $default = null): mixed
+    public function getPreferenceArgument(string $name): mixed
     {
-        return $this->getPreferenceArguments()[$name] ?? $default;
+        $argument = $this->getPreferenceArguments()[$name];
+
+
+        return $argument;
     }
 
     /**

@@ -124,7 +124,7 @@ interface ProtoContextInterface
     public function getPreferenceData(): array;
 
     /**
-     * Get the preference arguments
+     * Get the preference parameters
      * 
      * @return array The preference arguments
      */
@@ -143,11 +143,10 @@ interface ProtoContextInterface
      * Get the preference argument
      * 
      * @param string $name The argument name
-     * @param mixed $default The default value
      * 
      * @return mixed The preference argument
      */
-    public function getPreferenceArgument(string $name, mixed $default = null): mixed;
+    public function getPreferenceArgument(string $name): mixed;
 
 
     /**
