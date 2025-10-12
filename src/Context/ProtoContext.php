@@ -96,28 +96,56 @@ class ProtoContext implements ProtoContextInterface
     public function __construct(private readonly SingularityInterface $container)
     {}
 
-    public function __clone()
-    {
-        $this->reset();   
-    }
+    // public function __clone()
+    // {
+    //     // Deep clone all properties that are objects or arrays of objects
+    //     $this->metaData = is_array($this->metaData) ? unserialize(serialize($this->metaData)) : $this->metaData;
+    //     $this->pluginsCache = is_array($this->pluginsCache) ? unserialize(serialize($this->pluginsCache)) : $this->pluginsCache;
+    //     // $serviceFactory is a callable, do not clone
+    //     if ($this->serviceReflection instanceof ReflectionClass) {
+    //         //$this->serviceReflection = clone $this->serviceReflection;
+    //     }
+    //     // $reflectionCache is static, do not clone
+    //     if ($this->preferenceConfig instanceof ConfigInterface) {
+    //         $this->preferenceConfig = clone $this->preferenceConfig;
+    //     }
+    //     $this->preferenceArguments = is_array($this->preferenceArguments) ? unserialize(serialize($this->preferenceArguments)) : $this->preferenceArguments;
+    //     // Clone ReflectionMethod objects in filteredReflectionMethod
+    //     foreach ($this->filteredReflectionMethod as $filter => $methods) {
+    //         foreach ($methods as $k => $method) {
+    //         if ($method instanceof ReflectionMethod) {
+    //             $this->filteredReflectionMethod[$filter][$k] = clone $method;
+    //         }
+    //         }
+    //     }
+    //     // Clone ReflectionMethod objects in reflectionMethod
+    //     foreach ($this->reflectionMethod as $name => $method) {
+    //         if ($method instanceof ReflectionMethod) {
+    //         $this->reflectionMethod[$name] = clone $method;
+    //         }
+    //     }
+    //     // Deep clone attributesCache
+    //     $this->attributesCache = is_array($this->attributesCache) ? unserialize(serialize($this->attributesCache)) : $this->attributesCache;
+    //     // isPluginPropagationStopped is array of bool, no need to clone
+    // }
 
-    public function reset(): static
-    {
-        $this->metaData = [];
-        $this->pluginsCache = null;
-        $this->serviceFactory = null;
-        $this->serviceReflection = null;
-        $this->preferenceConfig = null;
-        $this->filteredReflectionMethod = [];
-        $this->reflectionMethod = [];
-        $this->attributesCache = [];
-        $this->isPluginPropagationStopped = [
-            PluginInterface::BEFORE => false,
-            PluginInterface::AFTER => false
-        ];
+    // public function reset(): static
+    // {
+    //     $this->metaData = [];
+    //     $this->pluginsCache = null;
+    //     $this->serviceFactory = null;
+    //     $this->serviceReflection = null;
+    //     $this->preferenceConfig = null;
+    //     $this->filteredReflectionMethod = [];
+    //     $this->reflectionMethod = [];
+    //     $this->attributesCache = [];
+    //     $this->isPluginPropagationStopped = [
+    //         PluginInterface::BEFORE => false,
+    //         PluginInterface::AFTER => false
+    //     ];
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
     public function asConfig(): ConfigInterface
     {
@@ -149,7 +177,10 @@ class ProtoContext implements ProtoContextInterface
      */
     public function getSharedId(): string
     {
-        return $this->getServiceId();
+        return $this->getServiceId()
+            // .'&'.
+            // hash('sha256', json_encode($this->getPreferenceData()))
+            ;
         
         // if (!$this->getPreferenceData() || empty($this->getPreferenceData())) {
         //     return $this->getServiceId();

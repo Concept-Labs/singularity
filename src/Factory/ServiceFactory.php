@@ -11,33 +11,9 @@ abstract class ServiceFactory implements ServiceFactoryInterface, SharedInterfac
 
     public function __construct(
         private readonly SingularityInterface $container,
-        private ProtoContextInterface $context
+        private readonly ProtoContextInterface $context
     )
     {
-    }
-
-    /**
-     * Set context
-     * 
-     * @param ProtoContextInterface $context
-     * 
-     * @return static
-     */
-    public function setContext(ProtoContextInterface $context): static
-    {
-        $this->context = $context;
-
-        return $this;
-    }
-
-    /**
-     * Get context
-     * 
-     * @return ProtoContextInterface
-     */
-    protected function getContext(): ProtoContextInterface
-    {
-        return $this->context;
     }
 
     /**
@@ -69,6 +45,16 @@ abstract class ServiceFactory implements ServiceFactoryInterface, SharedInterfac
     protected function getContainer(): SingularityInterface
     {
         return $this->container;
+    }
+
+    /**
+     * Get context
+     * 
+     * @return ProtoContextInterface
+     */
+    protected function getContext(): ProtoContextInterface
+    {
+        return $this->context;
     }
     
 }

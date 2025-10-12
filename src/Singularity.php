@@ -110,8 +110,13 @@ class Singularity implements SingularityInterface
     protected function require(string $serviceId, array $args = [], ?array $dependencyStack = null, bool $forceCreate = false): object
     {
         /**
-         @todo remove auto-self registration
+         @todo
          */
+
+        if ($serviceId == "Concept\\SimpleHttpExample\\Classes\\SomeService") {
+            $debug = 1;
+        
+        }
         if (
             /**
              * @todo: self registration

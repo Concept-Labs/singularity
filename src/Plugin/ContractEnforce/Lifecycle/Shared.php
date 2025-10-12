@@ -24,11 +24,11 @@ class Shared extends AbstractPlugin
 
 
         if ($shared && !$context->getContainer()->has($context->getSharedId())) {
-            echo sprintf(
-                "<br>REGISTER SHARED for %s with id %s",
-                $context->getServiceId(),
-                $context->getSharedId()
-            );
+            // echo sprintf(
+            //     "<br>REGISTER SHARED for %s with id %s",
+            //     $context->getServiceId(),
+            //     $context->getSharedId()
+            // );
             $context->getContainer()->register($context->getSharedId(), $service, $weak);
         }
     }

@@ -176,13 +176,11 @@ class PluginManager implements PluginManagerInterface
                 if (!is_a($plugin, PluginInterface::class, true)) {
                     throw new InvalidPluginClassException($plugin);
                 }
-//                echo "<br>Plugin <b>$plugin</b>::$method()";
                 match ($method) {
                     PluginInterface::BEFORE => $plugin::$method($context, $args),
                     PluginInterface::AFTER => $plugin::$method($object, $context, $args),
                     default => throw new InvalidPluginMethodException($plugin::class, $method)
                 };
-            //}
         }
     }
 
