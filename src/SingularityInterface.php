@@ -2,9 +2,9 @@
 namespace Concept\Singularity;
 
 use Psr\Container\ContainerInterface;
-use Concept\Config\ConfigInterface;
+use Concept\Config\Contract\ConfigurableInterface;
 
-interface SingularityInterface extends ContainerInterface
+interface SingularityInterface extends ContainerInterface, ConfigurableInterface
 {
     /**
      * {@inheritDoc}

@@ -1,11 +1,11 @@
 {
-    "plugin-manager": "@include(plugin-manager.json)",
+    "plugin-manager": "@include(settings/plugin-manager.json)",
     "cache": {
-        "enabled": false,
-        "--ttl": 3600,
+        "enabled": true,
         "class": "Concept\\SimpleCache\\FS\\JsonCache",
-        "args": {
-            "path": "${BASE}/var/.sdi/cache/sdi.context.json"
+        "arguments": {
+            "path": "${BASE}/var/.sdi/cache/context.json",
+            "ttl": 86400
         }
     }
 }

@@ -17,12 +17,10 @@ class ContextBuilder implements ContextBuilderInterface
      * ContextBuilder constructor
      * 
      * @param SingularityInterface $container
-     * @param ConfigInterface $config
      * @param CacheInterface $cache
      */
     public function __construct(
         private readonly SingularityInterface $container,
-        private ConfigInterface $config,
         private CacheInterface $cache
         )
     {
@@ -35,7 +33,7 @@ class ContextBuilder implements ContextBuilderInterface
      */
     protected function getConfig(): ConfigInterface
     {
-        return $this->config;
+        return $this->getContainer()->getConfig();
     }
 
     /**
@@ -219,6 +217,12 @@ class ContextBuilder implements ContextBuilderInterface
             }
 
             /**
+             @todo:
+              if preference config contains sub-singularity configuration node, merge it into the main configuration data
+              to allow nested configuration for services
+             */
+
+            /**
              * If the service ID has preferences, merge them into the top level preferences
              */
             if (isset($this->configData[ConfigNodeInterface::NODE_PREFERENCE][$id])) {
@@ -315,7 +319,7 @@ class ContextBuilder implements ContextBuilderInterface
      */
     private function generateCacheKey(string $serviceId, array $dependencyStack): string
     {
-        return 'pref_' . implode('_', $dependencyStack) . '_' . $serviceId;
+        return '' . implode('=>', $dependencyStack) . '=>' . $serviceId;
     }
 
     /**
