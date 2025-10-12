@@ -2,6 +2,11 @@
 
 Comprehensive documentation for the Singularity Dependency Injection Container.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.0-blue.svg)](https://www.php.net/)
+![PSR-12](https://img.shields.io/badge/code%20style-PSR--12-blue.svg)
+![PSR-4](https://img.shields.io/badge/autoloading-PSR--4-blue.svg)
+
 ## Requirements
 
 - **PHP Version:** >= 8.2
