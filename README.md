@@ -2,6 +2,7 @@
 
 Comprehensive documentation for the Singularity Dependency Injection Container.
 
+[![Concept](https://img.shields.io/badge/Concept-ecosystem-violet.svg)](https://github.com/Concept-Labs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.0-blue.svg)](https://www.php.net/)
 ![PSR-11](https://img.shields.io/badge/container-PSR--11-blue.svg)
