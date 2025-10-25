@@ -188,7 +188,8 @@ class ComposerPlugin extends AbstractPlugin
             foreach (glob($composerFiles) as $file) {
                 //$packageData = json_decode(file_get_contents($file), true);
                 $packageData = [];
-                $this->getResource()->read($packageData, $file);
+                $packageData = json_decode(file_get_contents($file), true);
+                //$this->getResource()->read($packageData, $file);
 
                 /**
                  * Check for concept-labs compatibility
