@@ -11,7 +11,7 @@ use Concept\Singularity\Config\ConfigNodeInterface;
 class ComposerPlugin extends AbstractPlugin
 {
 
-    static protected array $packagesData = [];
+    static protected ?array $packagesData = null;
     
     /**
      * Check if the value can be processed by the plugin
@@ -90,7 +90,7 @@ class ComposerPlugin extends AbstractPlugin
      */
     public function __invoke(mixed $value, string $path, array &$subjectData, callable $next): mixed
     {
-        if (!$this->match($path, (bool)$value)) {
+        if (!$this->match($path, (bool)$value) || static::$packagesData !== null) {
             return $next($value, $path, $subjectData);
         }
 
@@ -161,7 +161,7 @@ class ComposerPlugin extends AbstractPlugin
         unset($subjectData[$path]);
 
         //let the parser know that the value has been removed
-        return ParserInterface::VALUE_TO_REMOVE;
+        return ParserInterface::ABANDONED_NODE;
     }
 
 
@@ -175,41 +175,41 @@ class ComposerPlugin extends AbstractPlugin
      */
     protected function collectPackages(): void
     {
-        if (empty(static::$packagesData)) {
+        
             /** * Collect root composer.json data
-             * This is needed to include the root package data in the configuration
-             * so that it can be used in the application.
+         * This is needed to include the root package data in the configuration
+         * so that it can be used in the application.
+        */
+        static::collectRootComposer();
+
+        $composerFiles = Composer::vendor() . '/*/*/composer.json';
+        $composerFiles = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $composerFiles);
+
+        foreach (glob($composerFiles) as $file) {
+            //$packageData = json_decode(file_get_contents($file), true);
+            $packageData = [];
+            $packageData = json_decode(file_get_contents($file), true);
+
+            /**
+             @todo: parse "extra" data as inline
             */
-            static::collectRootComposer();
+            //$this->getResource()->read($packageData, $file);
 
-            $composerFiles = Composer::getVendorDir() . '/*/*/composer.json';
-            $composerFiles = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $composerFiles);
-
-            foreach (glob($composerFiles) as $file) {
-                //$packageData = json_decode(file_get_contents($file), true);
-                $packageData = [];
-                $packageData = json_decode(file_get_contents($file), true);
-                //$this->getResource()->read($packageData, $file);
-
-                /**
-                 * Check for concept-labs compatibility
-                 */
-                if (isset($packageData['extra']['concept'])) { 
-                    static::$packagesData[$packageData['name']] = $packageData;
-                }
+            /**
+             * Check for concept-labs compatibility
+             */
+            if (isset($packageData['extra']['concept'])) { 
+                static::$packagesData[$packageData['name']] = $packageData;
             }
-
-            
         }
     }
 
     protected function collectRootComposer(): void
     {
-        $composerFiles = Composer::getVendorDir() . "/../composer.json";
+        $composerFiles = Composer::vendor() . "/../composer.json";
         $composerFiles = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $composerFiles);
 
         foreach (glob($composerFiles) as $file) {
-            //$packageData = json_decode(file_get_contents($file), true);
             $packageData = [];
             $this->getResource()->read($packageData, $file);
 

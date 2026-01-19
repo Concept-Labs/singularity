@@ -28,10 +28,5 @@ class LazyGhost extends AbstractPlugin
                     }
                 )
         );
-
-        // echo sprintf(
-        //     "<br>LAZY CREATED for %s",
-        //     $context->getServiceId()
-        // );
     }
 }

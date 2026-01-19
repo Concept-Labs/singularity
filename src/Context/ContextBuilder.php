@@ -298,6 +298,7 @@ class ContextBuilder implements ContextBuilderInterface
     private function getNamespacesForId(string $serviceId): array
     {
         $parts = explode('\\', $serviceId);
+        $parts = array_filter($parts);
         $namespace = '';
         $namespaces = [];
         foreach ($parts as $part) {
